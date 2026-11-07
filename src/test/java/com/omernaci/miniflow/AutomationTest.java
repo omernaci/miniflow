@@ -9,6 +9,7 @@ import com.omernaci.miniflow.workflow.Workflow.Connection;
 import com.omernaci.miniflow.workflow.Workflow.NodeDef;
 import com.omernaci.miniflow.workflow.WorkflowService;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,8 +18,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,12 +47,21 @@ class AutomationTest {
     @Autowired
     MockMvc mvc;
 
+    @BeforeEach
+    void orderFlow() {
+        TestWorkflows.ensureOrderFlow(store);
+    }
+
     @Test
-    void examplesAreSeededIntoDatabase() {
-        assertThat(store.all()).extracting(Workflow::id)
-                .contains("order-flow", "fx-rate-alert", "site-health-check", "contact-form");
-        assertThat(store.find("fx-rate-alert").orElseThrow().cron()).contains("*/10 * * * *");
-        assertThat(store.find("contact-form").orElseThrow().active()).isTrue();
+    void starterWorkflowsAreValid() throws Exception {
+        List<Path> files;
+        try (Stream<Path> list = Files.list(Path.of("src/main/resources/workflows"))) {
+            files = list.filter(f -> f.toString().endsWith(".json")).toList();
+        }
+        for (Path file : files) {
+            List<Workflow> imported = store.importJson(Files.readString(file, StandardCharsets.UTF_8), true);
+            assertThat(imported).as(file.toString()).hasSize(1);
+        }
     }
 
     @Test

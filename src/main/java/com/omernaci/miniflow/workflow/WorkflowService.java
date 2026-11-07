@@ -60,7 +60,7 @@ public class WorkflowService {
             return;
         }
         Resource[] resources = new PathMatchingResourcePatternResolver()
-                .getResources("classpath:workflows/*.json");
+                .getResources(props.seedLocation());
         for (Resource r : resources) {
             try (InputStream in = r.getInputStream()) {
                 Workflow wf = mapper.readValue(in, Workflow.class);

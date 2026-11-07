@@ -1,7 +1,9 @@
 package com.omernaci.miniflow;
 
 import com.jayway.jsonpath.JsonPath;
+import com.omernaci.miniflow.workflow.WorkflowService;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +23,14 @@ class WebUiTest {
 
     @Autowired
     MockMvc mvc;
+
+    @Autowired
+    WorkflowService workflows;
+
+    @BeforeEach
+    void orderFlow() {
+        TestWorkflows.ensureOrderFlow(workflows);
+    }
 
     @Test
     void indexListsWorkflows() throws Exception {

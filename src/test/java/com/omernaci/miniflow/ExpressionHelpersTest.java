@@ -6,6 +6,8 @@ import com.omernaci.miniflow.engine.expression.ExpressionResolver;
 import com.omernaci.miniflow.workflow.Workflow;
 import com.omernaci.miniflow.workflow.Workflow.Connection;
 import com.omernaci.miniflow.workflow.Workflow.NodeDef;
+import com.omernaci.miniflow.workflow.WorkflowService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +36,14 @@ class ExpressionHelpersTest {
     @Autowired WorkflowEngine engine;
     @Autowired ExpressionResolver resolver;
     @Autowired MockMvc mvc;
+
+    @Autowired
+    WorkflowService workflows;
+
+    @BeforeEach
+    void orderFlow() {
+        TestWorkflows.ensureOrderFlow(workflows);
+    }
 
     private Object eval(String expression) {
         Map<String, Object> first = new LinkedHashMap<>();

@@ -10,8 +10,9 @@
 mvn spring-boot:run          # http://localhost:8080
 mvn test                     # runs the test suite (no external services needed)
 ```
-On the first start, 4 starter workflows are loaded and data is kept in `./data/` (H2 database file and
-the generated credential encryption key). Delete `data/` to start from scratch.
+
+On the first start, the MiniFlow monitoring workflows in src/main/resources/workflows (stats, error alert, weekly summary) 
+are loaded; they need PostgreSQL and the miniflow-db / slack credentials. Data is kept in ./data/
 
 ## Build a jar
 ```bash
@@ -45,6 +46,7 @@ Nothing secret is stored in the repository. Every setting comes from an environm
 | `MINIFLOW_DEFAULT_LOCALE` | `en` | Default UI language (`en` / `tr`); also used for errors in scheduled runs |
 | `MINIFLOW_EXECUTION_RETENTION_DAYS` | `14` | History kept this many days (cleanup every night at 03:00) |
 | `MINIFLOW_SEED_EXAMPLES` | `true` | Load starter workflows into an empty database |
+| `MINIFLOW_SEED_LOCATION` | `classpath:workflows/*.json` | Where the starter workflows are read from (e.g. `file:/opt/miniflow/seed/*.json`) |
 | `MINIFLOW_H2_CONSOLE` | `false` | Enable the H2 console at `/h2-console` (development only) |
 | `MINIFLOW_VARS_<NAME>` | — | Initial variables, e.g. `MINIFLOW_VARS_GITHUBTOKEN` (see [Variables](variables.md)) |
 

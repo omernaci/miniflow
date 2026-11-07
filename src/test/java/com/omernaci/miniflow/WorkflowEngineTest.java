@@ -4,6 +4,7 @@ import com.omernaci.miniflow.engine.ExecutionContext;
 import com.omernaci.miniflow.engine.WorkflowEngine;
 import com.omernaci.miniflow.workflow.Workflow;
 import com.omernaci.miniflow.workflow.WorkflowService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +26,11 @@ class WorkflowEngineTest {
 
     @Autowired
     WorkflowService store;
+
+    @BeforeEach
+    void orderFlow() {
+        TestWorkflows.ensureOrderFlow(store);
+    }
 
     @Test
     void bigOrderGoesToTrueBranch() {

@@ -1,0 +1,82 @@
+{
+  "id": "miniflow-error-alert",
+  "name": "MiniFlow: error alert (every 10 minutes)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "every-10-min",
+      "type": "trigger",
+      "x": 40,
+      "y": 200,
+      "params": { "cron": "*/10 * * * *", "sample": {} }
+    },
+    {
+      "id": "errors",
+      "type": "database",
+      "x": 280,
+      "y": 200,
+      "params": {
+        "credential": "miniflow-db",
+        "maxRows": 10,
+        "query": "SELECT e.id,\n       e.workflow_name AS workflow,\n       e.run_mode AS mode,\n       TO_CHAR(e.started_at, 'HH24:MI') AS at,\n       COALESCE(s.step ->> 'nodeId', '-') AS node,\n       COALESCE(LEFT(s.step ->> 'error', 200), 'unknown error') AS error,\n       :baseUrl || '/executions/' || e.id AS url\nFROM executions e\nLEFT JOIN LATERAL (\n    SELECT step\n    FROM jsonb_array_elements(e.steps_json::jsonb) AS step\n    WHERE step ->> 'error' IS NOT NULL\n    LIMIT 1\n) s ON true\nWHERE e.status = 'ERROR'\n  AND e.started_at >= NOW() - INTERVAL '10 minutes'\nORDER BY e.started_at DESC",
+        "params": { "baseUrl": "{{ default(vars.miniflowUrl, 'http://localhost:8080') }}" }
+      }
+    },
+    {
+      "id": "has-errors",
+      "type": "if",
+      "x": 520,
+      "y": 200,
+      "params": { "condition": "{{ errors.count > 0 }}" }
+    },
+    {
+      "id": "is-new",
+      "type": "dedupe",
+      "x": 760,
+      "y": 140,
+      "params": { "key": "{{ errors.first.id }}" }
+    },
+    {
+      "id": "notify",
+      "type": "slack",
+      "x": 1000,
+      "y": 140,
+      "params": {
+        "credential": "slack",
+        "text": "🔴 {{ errors.count }} failed execution(s) in the last 10 minutes",
+        "blocks": [
+          {
+            "type": "header",
+            "text": { "type": "plain_text", "text": "🔴 {{ errors.count }} failed execution(s)", "emoji": true }
+          },
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "{{ join(errors.rows.!['*' + workflow + '*  ·  `' + node + '`  ·  ' + at + ' (' + mode + ')' + '\n' + '> ' + error + '\n' + '<' + url + '|Open execution →>'], '\n\n') }}"
+            }
+          },
+          { "type": "divider" },
+          {
+            "type": "context",
+            "elements": [ { "type": "mrkdwn", "text": "MiniFlow · last 10 minutes · {{ format(now, 'dd.MM.yyyy HH:mm') }}" } ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "no-errors",
+      "type": "log",
+      "x": 760,
+      "y": 300,
+      "params": { "message": "No failed executions in the last 10 minutes" }
+    }
+  ],
+  "connections": [
+    { "from": "every-10-min", "to": "errors" },
+    { "from": "errors", "to": "has-errors" },
+    { "from": "has-errors", "to": "is-new", "branch": "true" },
+    { "from": "has-errors", "to": "no-errors", "branch": "false" },
+    { "from": "is-new", "to": "notify", "branch": "new" }
+  ]
+}

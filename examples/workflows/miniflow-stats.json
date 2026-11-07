@@ -1,0 +1,48 @@
+{
+  "id" : "miniflow-stats",
+  "name" : "MiniFlow stats (last 24 hours)",
+  "active" : true,
+  "nodes" : [ {
+    "id" : "start",
+    "type" : "trigger",
+    "params" : {
+      "path" : "stats",
+      "sample" : { }
+    },
+    "x" : 40,
+    "y" : 200
+  }, {
+    "id" : "stats",
+    "type" : "database",
+    "params" : {
+      "credential" : "miniflow-db",
+      "query" : "SELECT workflow_name AS workflow,\n       COUNT(*) AS runs,\n       SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) AS failed,\n       ROUND(AVG(duration_ms)) AS avg_ms\nFROM executions\nWHERE started_at >= NOW() - INTERVAL '24 hours'\nGROUP BY workflow_name\nORDER BY runs DESC",
+      "maxRows" : 50
+    },
+    "x" : 300,
+    "y" : 200
+  }, {
+    "id" : "result",
+    "type" : "set",
+    "params" : {
+      "keepInput" : false,
+      "values" : {
+        "workflows" : "{{ stats.count }}",
+        "totalRuns" : "{{ sum(stats.rows.![runs]) }}",
+        "totalFailed" : "{{ sum(stats.rows.![failed]) }}",
+        "rows" : "{{ stats.rows }}"
+      }
+    },
+    "x" : 560,
+    "y" : 200
+  } ],
+  "connections" : [ {
+    "from" : "start",
+    "to" : "stats",
+    "branch" : "main"
+  }, {
+    "from" : "stats",
+    "to" : "result",
+    "branch" : "main"
+  } ]
+}
