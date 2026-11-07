@@ -1,5 +1,6 @@
 package com.omernaci.miniflow;
 
+import com.omernaci.miniflow.common.exception.MiniFlowException;
 import com.omernaci.miniflow.engine.ExecutionContext;
 import com.omernaci.miniflow.engine.WorkflowEngine;
 import com.omernaci.miniflow.workflow.Workflow;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -65,5 +67,20 @@ class WorkflowEngineTest {
 
         ExecutionContext ctx = engine.run(wf, Map.of());
         assertThat(ctx.steps().get(1).status()).isEqualTo("ERROR");
+    }
+
+    @Test
+    void cyclicWorkflowStopsAtMaximumExecutionSteps() {
+        Workflow wf = new Workflow("cycle", "Cycle", List.of(
+                new Workflow.NodeDef("start", "trigger", Map.of()),
+                new Workflow.NodeDef("loop", "set", Map.of())
+        ), List.of(
+                new Workflow.Connection("start", "loop", null),
+                new Workflow.Connection("loop", "loop", null)
+        ));
+
+        assertThatThrownBy(() -> engine.run(wf, Map.of()))
+                .isInstanceOfSatisfying(MiniFlowException.class, exception ->
+                        assertThat(exception.getCode()).isEqualTo("error.engine.maxSteps"));
     }
 }
