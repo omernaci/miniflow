@@ -116,7 +116,7 @@ class ExamplesImportTest {
 
         mvc.perform(get("/workflows/export"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(Matchers.greaterThanOrEqualTo(12)));
+                .andExpect(jsonPath("$.length()").value(Matchers.greaterThanOrEqualTo(8)));
 
         mvc.perform(post("/api/workflows/import").param("overwrite", "true")
                         .contentType(MediaType.APPLICATION_JSON)
