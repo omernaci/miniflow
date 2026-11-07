@@ -10,8 +10,9 @@
 mvn spring-boot:run          # http://localhost:8080
 mvn test                     # testler (dış servis gerekmez)
 ```
-İlk açılışta 4 başlangıç akışı yüklenir; veriler `./data/` klasöründe (H2 veritabanı dosyası ve otomatik üretilen
-kimlik bilgisi şifreleme anahtarı) saklanır. Sıfırdan başlamak için `data/` klasörünü silin.
+
+İlk açılışta src/main/resources/workflows içindeki MiniFlow izleme akışları (istatistik, hata alarmı, haftalık özet) 
+yüklenir; bunlar PostgreSQL ve miniflow-db / slack kimlik bilgilerini ister. Veriler ./data/
 
 ## Jar oluşturma
 ```bash
@@ -45,6 +46,7 @@ Depoda hiçbir gizli bilgi tutulmaz. Tüm ayarlar ortam değişkenlerinden gelir
 | `MINIFLOW_DEFAULT_LOCALE` | `en` | Varsayılan arayüz dili (`en` / `tr`); zamanlanmış çalıştırmalardaki hata mesajları da bu dilde |
 | `MINIFLOW_EXECUTION_RETENTION_DAYS` | `14` | Geçmiş kaç gün tutulur (her gece 03:00'te temizlik) |
 | `MINIFLOW_SEED_EXAMPLES` | `true` | Boş veritabanına başlangıç akışlarını yükle |
+| `MINIFLOW_SEED_LOCATION` | `classpath:workflows/*.json` | Başlangıç akışlarının okunduğu yer (ör. `file:/opt/miniflow/seed/*.json`) |
 | `MINIFLOW_H2_CONSOLE` | `false` | `/h2-console` adresinde H2 konsolunu açar (yalnızca geliştirme) |
 | `MINIFLOW_VARS_<AD>` | — | Başlangıç değişkenleri, ör. `MINIFLOW_VARS_GITHUBTOKEN` ([Değişkenler](variables.md)) |
 

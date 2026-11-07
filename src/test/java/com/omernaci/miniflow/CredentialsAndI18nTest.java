@@ -5,7 +5,9 @@ import com.omernaci.miniflow.config.MiniFlowProperties;
 import com.omernaci.miniflow.credential.CredentialCrypto;
 import com.omernaci.miniflow.credential.CredentialRepository;
 import com.omernaci.miniflow.credential.CredentialService;
+import com.omernaci.miniflow.workflow.WorkflowService;
 import jakarta.servlet.http.Cookie;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,6 +47,14 @@ class CredentialsAndI18nTest {
     @Autowired
     MockMvc mvc;
 
+    @Autowired
+    WorkflowService workflows;
+
+    @BeforeEach
+    void orderFlow() {
+        TestWorkflows.ensureOrderFlow(workflows);
+    }
+
     @Test
     void secretsAreEncryptedAndKeptWhenLeftBlank() {
         credentials.save(null, "ai-sifreli", "ai", Map.of("provider", "openai", "apiKey", "sk-COK-GIZLI", "model", "m1"));
@@ -76,7 +86,7 @@ class CredentialsAndI18nTest {
     @Test
     void wrongKeyCannotDecrypt() {
         String encrypted = crypto.encrypt("{\"a\":\"b\"}");
-        CredentialCrypto other = new CredentialCrypto(new MiniFlowProperties(Map.of(), 14, true, "tr", "baska-anahtar"));
+        CredentialCrypto other = new CredentialCrypto(new MiniFlowProperties(Map.of(), 14, true, "tr", "baska-anahtar", "classpath:workflows/*.json"));
         assertThatThrownBy(() -> other.decrypt(encrypted)).isInstanceOf(MiniFlowException.class);
         assertThat(crypto.decrypt(encrypted)).isEqualTo("{\"a\":\"b\"}");
     }

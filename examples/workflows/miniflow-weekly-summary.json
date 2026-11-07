@@ -1,0 +1,117 @@
+{
+  "id": "miniflow-weekly-summary",
+  "name": "MiniFlow: weekly summary to Slack (Monday 09:00)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "monday-0900",
+      "type": "trigger",
+      "x": 40,
+      "y": 200,
+      "params": { "cron": "0 9 * * MON", "sample": {} }
+    },
+    {
+      "id": "totals",
+      "type": "database",
+      "x": 260,
+      "y": 200,
+      "params": {
+        "credential": "miniflow-db",
+        "query": "SELECT COUNT(*) AS runs,\n       COUNT(DISTINCT workflow_id) AS workflows,\n       SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) AS failed,\n       COALESCE(ROUND(100.0 * SUM(CASE WHEN status = 'ERROR' THEN 0 ELSE 1 END) / NULLIF(COUNT(*), 0)), 0) AS success_rate,\n       CASE WHEN AVG(duration_ms) >= 1000 THEN ROUND(AVG(duration_ms) / 1000.0, 1) || ' s'\n            ELSE COALESCE(ROUND(AVG(duration_ms)), 0) || ' ms' END AS avg_time\nFROM executions\nWHERE started_at >= NOW() - INTERVAL '7 days'"
+      }
+    },
+    {
+      "id": "has-runs",
+      "type": "if",
+      "x": 480,
+      "y": 200,
+      "params": { "condition": "{{ totals.first.runs > 0 }}" }
+    },
+    {
+      "id": "slowest",
+      "type": "database",
+      "x": 700,
+      "y": 120,
+      "params": {
+        "credential": "miniflow-db",
+        "maxRows": 5,
+        "query": "SELECT ROW_NUMBER() OVER (ORDER BY AVG(duration_ms) DESC) AS rank,\n       MAX(workflow_name) AS workflow,\n       COUNT(*) AS runs,\n       CASE WHEN AVG(duration_ms) >= 1000 THEN ROUND(AVG(duration_ms) / 1000.0, 1) || ' s'\n            ELSE ROUND(AVG(duration_ms)) || ' ms' END AS avg_time,\n       CASE WHEN MAX(duration_ms) >= 1000 THEN ROUND(MAX(duration_ms) / 1000.0, 1) || ' s'\n            ELSE MAX(duration_ms) || ' ms' END AS max_time\nFROM executions\nWHERE started_at >= NOW() - INTERVAL '7 days'\nGROUP BY workflow_id\nORDER BY AVG(duration_ms) DESC\nLIMIT 5"
+      }
+    },
+    {
+      "id": "failing",
+      "type": "database",
+      "x": 920,
+      "y": 120,
+      "params": {
+        "credential": "miniflow-db",
+        "maxRows": 5,
+        "query": "SELECT ROW_NUMBER() OVER (ORDER BY SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) DESC) AS rank,\n       MAX(workflow_name) AS workflow,\n       COUNT(*) AS runs,\n       SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) AS failed,\n       ROUND(100.0 * SUM(CASE WHEN status = 'ERROR' THEN 0 ELSE 1 END) / COUNT(*)) AS success_rate\nFROM executions\nWHERE started_at >= NOW() - INTERVAL '7 days'\nGROUP BY workflow_id\nHAVING SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) > 0\nORDER BY failed DESC, runs DESC\nLIMIT 5"
+      }
+    },
+    {
+      "id": "notify",
+      "type": "slack",
+      "x": 1140,
+      "y": 120,
+      "params": {
+        "credential": "slack",
+        "text": "📊 MiniFlow weekly summary: {{ totals.first.runs }} runs, {{ totals.first.success_rate }}% success",
+        "blocks": [
+          {
+            "type": "header",
+            "text": { "type": "plain_text", "text": "📊 MiniFlow weekly summary", "emoji": true }
+          },
+          {
+            "type": "context",
+            "elements": [ { "type": "mrkdwn", "text": "Last 7 days · until {{ format(now, 'dd.MM.yyyy HH:mm') }}" } ]
+          },
+          {
+            "type": "section",
+            "fields": [
+              { "type": "mrkdwn", "text": "*Executions*\n{{ totals.first.runs }} in {{ totals.first.workflows }} workflow(s)" },
+              { "type": "mrkdwn", "text": "*Success rate*\n{{ totals.first.success_rate >= 95 ? '🟢' : (totals.first.success_rate >= 80 ? '🟡' : '🔴') }} {{ totals.first.success_rate }}%" },
+              { "type": "mrkdwn", "text": "*Failed*\n{{ totals.first.failed }}" },
+              { "type": "mrkdwn", "text": "*Average duration*\n{{ totals.first.avg_time }}" }
+            ]
+          },
+          { "type": "divider" },
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "*🐢 Slowest workflows*\n{{ join(slowest.rows.![rank + '. *' + workflow + '* · avg ' + avg_time + ' · max ' + max_time + ' · ' + runs + ' runs'], '\n') }}"
+            }
+          },
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "*🔥 Most failing workflows*\n{{ default(join(failing.rows.![rank + '. *' + workflow + '* · ' + failed + ' of ' + runs + ' failed · ' + success_rate + '% success'], '\n'), 'No failures this week 🎉') }}"
+            }
+          },
+          { "type": "divider" },
+          {
+            "type": "context",
+            "elements": [ { "type": "mrkdwn", "text": "<{{ default(vars.miniflowUrl, 'http://localhost:8080') }}/dashboard|Open dashboard →>" } ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "quiet-week",
+      "type": "log",
+      "x": 700,
+      "y": 300,
+      "params": { "message": "No executions in the last 7 days, no summary sent" }
+    }
+  ],
+  "connections": [
+    { "from": "monday-0900", "to": "totals" },
+    { "from": "totals", "to": "has-runs" },
+    { "from": "has-runs", "to": "slowest", "branch": "true" },
+    { "from": "has-runs", "to": "quiet-week", "branch": "false" },
+    { "from": "slowest", "to": "failing" },
+    { "from": "failing", "to": "notify" }
+  ]
+}

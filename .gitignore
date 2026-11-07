@@ -3,7 +3,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 
 # Local data: H2 database files and the generated encryption key
-data/
+/data/
 
 # Secrets
 .env

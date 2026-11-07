@@ -38,11 +38,13 @@ cd miniflow
 mvn spring-boot:run
 ```
 
-Open http://localhost:8080 and try a seeded workflow:
+Open http://localhost:8080, then import the basic examples and run one:
 
 ```bash
-curl -X POST localhost:8080/webhook/orders -H 'Content-Type: application/json' \
-  -d '{"orderId":42,"customer":"Alice","amount":1500}'
+curl -X POST 'localhost:8080/api/workflows/import?overwrite=true' -H 'Content-Type: application/json' \
+  --data-binary @examples/basics.json
+curl -X POST localhost:8080/api/workflows/cart-calculator/run -H 'Content-Type: application/json' \
+  -d '{"product":"Headphones","price":450,"qty":2,"coupon":"SAVE10"}'
 ```
 
 With PostgreSQL and Docker:
