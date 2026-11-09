@@ -47,6 +47,7 @@ Nothing secret is stored in the repository. Every setting comes from an environm
 | `MINIFLOW_EXECUTION_RETENTION_DAYS` | `14` | History kept this many days (cleanup every night at 03:00) |
 | `MINIFLOW_SEED_EXAMPLES` | `true` | Load starter workflows into an empty database |
 | `MINIFLOW_SEED_LOCATION` | `classpath:workflows/*.json` | Where the starter workflows are read from (e.g. `file:/opt/miniflow/seed/*.json`) |
+| `MINIFLOW_FILES_DIR` | — | Folder the File node may list and read. Empty disables the File node |
 | `MINIFLOW_H2_CONSOLE` | `false` | Enable the H2 console at `/h2-console` (development only) |
 | `MINIFLOW_VARS_<NAME>` | — | Initial variables, e.g. `MINIFLOW_VARS_GITHUBTOKEN` (see [Variables](variables.md)) |
 

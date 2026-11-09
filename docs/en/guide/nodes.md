@@ -15,6 +15,7 @@
 | `email` | Send via SMTP | `credential`, `to`, `cc`, `subject`, `text`, `html` (bool), `attachments` | `sent` |
 | `database` | Run SQL | `credential`, `query`, `params`, `maxRows` | SELECT: `rows`, `count`, `first`; other: `updated` |
 | `spreadsheet` | Build CSV / XLSX | `rows`, `format` (xlsx/csv), `fileName`, `columns`, `sheetName`, `delimiter` | `file`, `rowCount`, `columns` |
+| `file` | List / read local documents | `operation` (list/read), `path`, `pattern`, `recursive`, `pages` (PDF), `maxChars` | list: `files`, `count`; read: `text`, `pages`, `chars`, `truncated` |
 | `rss` | Read RSS/Atom | `url`, `limit` | `title`, `items`, `latest` |
 | `ai` | Ask an LLM | `credential`, `prompt`, `system`, `maxTokens`, `temperature`, `json` | `text`, `data` (when `json:true`), `usage` |
 | `github` | Issues and gists | `credential`, `operation` (createIssue, comment, addLabels, close, createGist), `repo`, `title`, `body`, `labels`, `issueNumber`; gist: `fileName`, `content`, `description`, `public` | `number`, `url`; gist: `id`, `url`, `rawUrl` |
@@ -26,6 +27,7 @@
 Notes:
 - **SQL:** never paste values into the query — use named parameters: `"query": "… WHERE email = :email", "params": {"email": "{{ input.email }}"}`. Column names come back lower case (`{{ input.first.order_no }}`). H2, PostgreSQL and MySQL drivers are included.
 - **Files:** `spreadsheet` returns `file` (`name`, `mimeType`, `size`, base64 `data`). Pass it to email: `"attachments": "{{ input.file }}"` (or a list). For CSV in Excel with a non-English locale, `"delimiter": ";"` helps; a UTF-8 BOM is added.
+- **Local documents:** `file` only works inside the folder set by `MINIFLOW_FILES_DIR` (paths are relative to it; `..` and links out of it are rejected). `read` supports PDF, Word `.docx` and text files (txt, md, csv, json, html, xml, yml, log). Text longer than `maxChars` is cut and `truncated` is true; for long PDFs read a page range with `"pages": "1-5"`. Hidden files are skipped by `list`.
 - **Gists:** `content` can be text or a list of rows. Rows become a Markdown table for `.md`, CSV for `.csv`, pretty JSON otherwise — so `"content": "{{ nodes['query'].rows }}"` with `"fileName": "report.md"` just works. Gists are secret unless `"public": true` (secret gists are unlisted, not private: anyone with the link can read them).
 - **AI with `json: true`:** describe the exact JSON shape in `system`; the parsed object is in `data`.
 - **HTTP monitoring:** use `"failOnError": false` so 4xx/5xx *and* connection errors don't stop the flow; check `{{ !input.ok }}`.

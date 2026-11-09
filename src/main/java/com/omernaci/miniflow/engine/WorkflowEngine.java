@@ -41,7 +41,7 @@ public class WorkflowEngine {
     }
 
     private static final List<String> PALETTE_ORDER = List.of("trigger", "set", "if", "loop", "aggregate", "dedupe", "wait", "http", "ai",
-            "email", "slack", "github", "googleSheets", "database", "spreadsheet", "rss",
+            "email", "slack", "github", "googleSheets", "database", "spreadsheet", "file", "rss",
             "redis", "rabbitmq", "kafka", "log");
 
     public List<NodeTypeInfo> nodeTypes() {

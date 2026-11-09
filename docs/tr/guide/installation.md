@@ -47,6 +47,7 @@ Depoda hiçbir gizli bilgi tutulmaz. Tüm ayarlar ortam değişkenlerinden gelir
 | `MINIFLOW_EXECUTION_RETENTION_DAYS` | `14` | Geçmiş kaç gün tutulur (her gece 03:00'te temizlik) |
 | `MINIFLOW_SEED_EXAMPLES` | `true` | Boş veritabanına başlangıç akışlarını yükle |
 | `MINIFLOW_SEED_LOCATION` | `classpath:workflows/*.json` | Başlangıç akışlarının okunduğu yer (ör. `file:/opt/miniflow/seed/*.json`) |
+| `MINIFLOW_FILES_DIR` | — | File node'unun listeleyip okuyabileceği klasör. Boşsa File node kapalıdır |
 | `MINIFLOW_H2_CONSOLE` | `false` | `/h2-console` adresinde H2 konsolunu açar (yalnızca geliştirme) |
 | `MINIFLOW_VARS_<AD>` | — | Başlangıç değişkenleri, ör. `MINIFLOW_VARS_GITHUBTOKEN` ([Değişkenler](variables.md)) |
 

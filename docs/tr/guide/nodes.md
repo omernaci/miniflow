@@ -15,6 +15,7 @@
 | `email` | SMTP ile gönderir | `credential`, `to`, `cc`, `subject`, `text`, `html` (bool), `attachments` | `sent` |
 | `database` | SQL çalıştırır | `credential`, `query`, `params`, `maxRows` | SELECT: `rows`, `count`, `first`; diğer: `updated` |
 | `spreadsheet` | CSV / XLSX üretir | `rows`, `format` (xlsx/csv), `fileName`, `columns`, `sheetName`, `delimiter` | `file`, `rowCount`, `columns` |
+| `file` | Yerel dökümanları listele / oku | `operation` (list/read), `path`, `pattern`, `recursive`, `pages` (PDF), `maxChars` | list: `files`, `count`; read: `text`, `pages`, `chars`, `truncated` |
 | `rss` | RSS/Atom okur | `url`, `limit` | `title`, `items`, `latest` |
 | `ai` | LLM'e sorar | `credential`, `prompt`, `system`, `maxTokens`, `temperature`, `json` | `text`, `data` (`json:true` ise), `usage` |
 | `github` | Issue ve gist işlemleri | `credential`, `operation` (createIssue, comment, addLabels, close, createGist), `repo`, `title`, `body`, `labels`, `issueNumber`; gist: `fileName`, `content`, `description`, `public` | `number`, `url`; gist: `id`, `url`, `rawUrl` |
@@ -26,6 +27,7 @@
 Notlar:
 - **SQL:** Değerleri sorguya yapıştırmayın, isimli parametre kullanın: `"query": "… WHERE email = :email", "params": {"email": "{{ input.email }}"}`. Sütun adları küçük harfle gelir (`{{ input.first.order_no }}`). H2, PostgreSQL ve MySQL sürücüleri hazır.
 - **Dosyalar:** `spreadsheet` çıktısında `file` (`name`, `mimeType`, `size`, base64 `data`) var. E-postaya ek: `"attachments": "{{ input.file }}"` (veya liste). Türkçe Excel'de CSV için `"delimiter": ";"` önerilir; UTF-8 BOM otomatik eklenir.
+- **Yerel dökümanlar:** `file` yalnızca `MINIFLOW_FILES_DIR` ile verilen klasörde çalışır (yollar bu klasöre göredir; `..` ve klasör dışına çıkan linkler reddedilir). `read` PDF, Word `.docx` ve metin dosyalarını (txt, md, csv, json, html, xml, yml, log) okur. `maxChars` değerinden uzun metin kesilir ve `truncated` true olur; uzun PDF'lerde `"pages": "1-5"` ile sayfa aralığı okuyun. Gizli dosyalar `list` sonucunda yer almaz.
 - **Gist:** `content` metin veya satır listesi olabilir. Satırlar `.md` için Markdown tablo, `.csv` için CSV, diğerlerinde biçimli JSON olur — yani `"content": "{{ nodes['query'].rows }}"` ve `"fileName": "report.md"` yeterli. `"public": true` verilmedikçe gist gizlidir (gizli gist listelenmez ama özel değildir: bağlantıyı bilen okuyabilir).
 - **Yapay zekâ `json: true`:** `system` içinde tam JSON biçimini tarif edin; çözülmüş nesne `data` alanındadır.
 - **HTTP ile izleme:** `"failOnError": false` ile 4xx/5xx *ve* bağlantı hataları akışı durdurmaz; `{{ !input.ok }}` ile kontrol edin.
