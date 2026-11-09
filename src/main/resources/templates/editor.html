@@ -79,6 +79,12 @@
                         <input id="np-retry-backoff" type="number" min="1" max="10" step="0.5"></label>
                 </div>
                 <p class="small muted" th:text="#{editor.retry.hint}">Waits 1 s, 2 s, 4 s… between attempts (at most 30 s each).</p>
+                <label><span th:text="#{editor.onError.label}">When it still fails</span>
+                    <select id="np-onerror">
+                        <option value="stop" th:text="#{editor.onError.stop}">Stop the workflow</option>
+                        <option value="branch" th:text="#{editor.onError.branch}">Continue on the error output</option>
+                    </select></label>
+                <p class="small muted" th:text="#{editor.onError.hint}">The error output receives error, nodeId, attempts and input.</p>
             </details>
             <p id="np-cred" class="small cred-hint" hidden></p>
             <p class="small muted"><span th:text="#{editor.expressions}">Expressions:</span>

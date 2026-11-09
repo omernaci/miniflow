@@ -978,3 +978,5 @@ input[type=checkbox] { accent-color: var(--accent); }
 .retry-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
 .retry-grid input { width: 100%; }
 .tag.retry { background: var(--warn-bg); color: var(--warn); }
+.drawflow .drawflow-node .output[data-label="error"] { border-color: var(--err); }
+.drawflow .drawflow-node .output[data-label="error"]::after { color: var(--err); }

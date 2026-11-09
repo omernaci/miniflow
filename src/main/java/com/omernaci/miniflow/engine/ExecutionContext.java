@@ -61,5 +61,10 @@ public class ExecutionContext {
                        Map<String, Object> output, String error, long durationMs) {
             this(nodeId, type, status, branch, output, error, durationMs, 1);
         }
+
+        /** An error that was not handled by an error branch, i.e. one that makes the execution fail. */
+        public boolean failed() {
+            return "ERROR".equals(status) && !"error".equals(branch);
+        }
     }
 }

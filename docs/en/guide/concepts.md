@@ -90,6 +90,21 @@ A single wait never exceeds 30 seconds. Expressions are resolved again for every
 The execution history shows the number of attempts (↻ 3 attempts). Webhooks wait for the retries, so keep
 `times` and `delayMs` small on synchronous webhook workflows.
 
+## Error branch
+
+By default a failing node stops the workflow. Set `"onError": "branch"` (or choose *Continue on the error output*
+in the node panel) to give the node an extra `error` output and continue there instead:
+
+```json
+{ "id": "call-api", "type": "http", "onError": "branch", "params": { "url": "https://api.example.com/orders" } },
+{ "from": "call-api", "to": "notify-failure", "branch": "error" }
+```
+
+The error output receives `error` (message), `nodeId`, `type`, `attempts` and `input` (what the failed node received),
+e.g. `{{ input.error }}` or `{{ input.input.orderId }}`. Retries run first; the error branch is taken only after the
+last attempt. When the error is handled this way the execution counts as successful and the failed step is marked
+with `→ error`. If nothing is connected to the `error` output, the workflow stops as before.
+
 ## Execution history
 Every run is stored with each node's status, branch, output, error and duration. Long text values (> 20,000 characters, e.g. file contents) are truncated in history.
 `Authorization` and `Cookie` headers are never stored. History is deleted after `execution-retention-days`.

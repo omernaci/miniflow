@@ -189,6 +189,10 @@ public class WorkflowService {
                 throw new MiniFlowException("error.workflow.invalidRetry", node.id(), RetryPolicy.MAX_TIMES,
                         RetryPolicy.MAX_DELAY_MS);
             }
+            if (node.onError() != null && !Workflow.NodeDef.ON_ERROR_STOP.equals(node.onError())
+                    && !Workflow.NodeDef.ON_ERROR_BRANCH.equals(node.onError())) {
+                throw new MiniFlowException("error.workflow.invalidOnError", node.id(), node.onError());
+            }
         }
         wf.cron().ifPresent(expr -> {
             try {

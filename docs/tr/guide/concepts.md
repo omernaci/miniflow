@@ -87,6 +87,21 @@ Tek bir bekleme 30 saniyeyi geçmez. İfadeler her denemede yeniden çözülür 
 Çalıştırma geçmişinde deneme sayısı görünür (↻ 3 deneme). Webhook'lar denemelerin bitmesini bekler; eşzamanlı
 webhook akışlarında `times` ve `delayMs` değerlerini küçük tutun.
 
+## Hata dalı
+
+Varsayılan olarak hata veren bir düğüm akışı durdurur. `"onError": "branch"` ayarıyla (veya düğüm panelinde
+*Hata çıkışından devam et* seçeneğiyle) düğüme ek bir `error` çıkışı eklenir ve akış oradan devam eder:
+
+```json
+{ "id": "call-api", "type": "http", "onError": "branch", "params": { "url": "https://api.example.com/orders" } },
+{ "from": "call-api", "to": "notify-failure", "branch": "error" }
+```
+
+Hata çıkışına `error` (mesaj), `nodeId`, `type`, `attempts` ve `input` (hata veren düğümün aldığı veri) gelir;
+ör. `{{ input.error }}` veya `{{ input.input.orderId }}`. Önce yeniden denemeler yapılır; hata dalına yalnızca son
+denemeden sonra geçilir. Hata bu şekilde ele alındığında çalıştırma başarılı sayılır ve hatalı adım `→ error` ile
+işaretlenir. `error` çıkışına hiçbir şey bağlı değilse akış eskisi gibi durur.
+
 ## Çalıştırma geçmişi
 Her çalıştırma düğüm düğüm durum, dal, çıktı, hata ve süreyle saklanır. 20.000 karakteri aşan metinler (ör. dosya içeriği) geçmişte kısaltılır.
 `Authorization` ve `Cookie` başlıkları asla yazılmaz. Geçmiş `execution-retention-days` gün sonra silinir.

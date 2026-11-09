@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayDeque;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -69,7 +70,9 @@ public class WorkflowEngine {
             NodeDef node = workflow.node(current.nodeId())
                     .orElseThrow(() -> new MiniFlowException("error.engine.nodeNotFound", current.nodeId()));
 
-            NodeResult result = executeNode(node, current.input(), ctx);
+            boolean errorHandled = node.continuesOnError()
+                    && !workflow.nextNodes(node.id(), NodeDef.ERROR_BRANCH).isEmpty();
+            NodeResult result = executeNode(node, current.input(), ctx, errorHandled);
             if (result == null) {
                 continue;
             }
@@ -80,7 +83,8 @@ public class WorkflowEngine {
         return ctx;
     }
 
-    private NodeResult executeNode(NodeDef node, Map<String, Object> input, ExecutionContext ctx) {
+    private NodeResult executeNode(NodeDef node, Map<String, Object> input, ExecutionContext ctx,
+                                   boolean errorHandled) {
         long start = System.currentTimeMillis();
         NodeExecutor executor = executors.get(node.type());
         if (executor == null) {
@@ -102,6 +106,17 @@ public class WorkflowEngine {
                     continue;
                 }
                 log.warn("Node '{}' failed after {} attempt(s): {}", node.id(), attempt, e.getMessage());
+                if (errorHandled) {
+                    Map<String, Object> error = new LinkedHashMap<>();
+                    error.put("error", e.getMessage());
+                    error.put("nodeId", node.id());
+                    error.put("type", node.type());
+                    error.put("attempts", attempt);
+                    error.put("input", input);
+                    ctx.record(new ExecutionContext.StepLog(node.id(), node.type(), "ERROR", NodeDef.ERROR_BRANCH,
+                            error, e.getMessage(), System.currentTimeMillis() - start, attempt));
+                    return NodeResult.branch(error, NodeDef.ERROR_BRANCH);
+                }
                 ctx.record(new ExecutionContext.StepLog(node.id(), node.type(), "ERROR", null,
                         null, e.getMessage(), System.currentTimeMillis() - start, attempt));
                 return null;

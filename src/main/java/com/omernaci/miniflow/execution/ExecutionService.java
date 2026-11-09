@@ -35,7 +35,7 @@ public class ExecutionService {
             steps = List.of(new StepLog("-", "engine", "ERROR", null, null, e.getMessage(), 0));
         }
 
-        boolean failed = steps.stream().anyMatch(s -> "ERROR".equals(s.status()));
+        boolean failed = steps.stream().anyMatch(StepLog::failed);
         Execution execution = new Execution(UUID.randomUUID().toString(), wf.id(), wf.name(), mode,
                 failed ? "ERROR" : "SUCCESS", startedAt, (System.nanoTime() - t0) / 1_000_000,
                 trigger, steps);
