@@ -50,4 +50,12 @@ public interface NodeExecutor {
     default boolean hasInput() {
         return true;
     }
+
+    /**
+     * Name of a list parameter whose values become additional outputs placed before {@link #outputs()}
+     * (e.g. the cases of a switch), or {@code null} when the outputs are fixed.
+     */
+    default String dynamicOutputs() {
+        return null;
+    }
 }

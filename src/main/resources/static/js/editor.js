@@ -113,8 +113,36 @@
     }
 
     function outputsOf(data) {
-        const outs = typeInfo(data.type).outputs;
+        const t = typeInfo(data.type);
+        let outs = t.outputs;
+        if (t.dynamicOutputs) {
+            const raw = (data.params || {})[t.dynamicOutputs];
+            const list = Array.isArray(raw) ? raw : (typeof raw === 'string' ? raw.split(',') : []);
+            const names = [];
+            list.map(v => String(v == null ? '' : v).trim())
+                .filter(v => v && v.toLowerCase() !== 'default' && v !== 'error' && names.indexOf(v) < 0)
+                .forEach(v => names.push(v));
+            outs = names.concat(outs);
+        }
         return data.onError === 'branch' ? outs.concat(['error']) : outs;
+    }
+
+    function reconcileOutputs(dfId, before, after) {
+        if (before.join('\u0000') === after.join('\u0000')) return;
+        const node = editor.getNodeFromId(dfId);
+        const kept = [];
+        Object.keys(node.outputs).forEach(key => {
+            const name = before[parseInt(key.split('_')[1], 10) - 1];
+            node.outputs[key].connections.forEach(c => kept.push({ name: name, to: c.node, input: c.output }));
+        });
+        for (let k = Object.keys(node.outputs).length; k >= 1; k--) {
+            editor.removeNodeOutput(dfId, 'output_' + k);
+        }
+        after.forEach(() => editor.addNodeOutput(dfId));
+        kept.forEach(c => {
+            const idx = after.indexOf(c.name);
+            if (idx >= 0) editor.addConnection(dfId, c.to, 'output_' + (idx + 1), c.input);
+        });
     }
 
     function labelOutputs(dfId) {
@@ -409,13 +437,9 @@
         if (retry) updated.retry = retry;
         const onError = readOnError();
         if (onError) updated.onError = onError;
-        const hadErrorOutput = node.data.onError === 'branch';
+        const outputsBefore = outputsOf(node.data);
         editor.updateNodeDataFromId(selectedDfId, updated);
-        if (!hadErrorOutput && onError === 'branch') {
-            editor.addNodeOutput(selectedDfId);
-        } else if (hadErrorOutput && onError !== 'branch') {
-            editor.removeNodeOutput(selectedDfId, 'output_' + outputsOf(updated).concat(['error']).length);
-        }
+        reconcileOutputs(selectedDfId, outputsBefore, outputsOf(updated));
         labelOutputs(selectedDfId);
         nodeEl(selectedDfId).querySelector('.node-title').textContent = newId;
         els.npError.hidden = true;
