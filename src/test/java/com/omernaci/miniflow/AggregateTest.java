@@ -90,8 +90,8 @@ class AggregateTest {
                 new NodeDef("start", "trigger", Map.of()),
                 new NodeDef("each", "loop", Map.of("items", "{{ input.orders }}")),
                 new NodeDef("price", "set", Map.of("keepInput", false, "values", Map.of(
-                        "id", "{{ input.id }}", "withVat", "{{ input.id * 100 * 1.2 }}"))),
-                new NodeDef("total", "aggregate", Map.of("mode", "sum", "field", "withVat"))
+                        "id", "{{ input.id }}", "withVat", "{{ input.id * 120 }}"))),
+                new NodeDef("total", "aggregate", Map.of("items", "{{ input.items }}", "mode", "sum", "field", "withVat"))
         ), List.of(new Connection("start", "each", null), new Connection("each", "price", "item"),
                 new Connection("each", "total", "done")));
 
