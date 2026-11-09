@@ -5,6 +5,8 @@
 | `trigger` | Akışı başlatır | `path`, `cron`, `listen`, `sample`, `signatureSecretVar` | tetikleyici verisi |
 | `set` | Alan ekler / değiştirir | `values`, `keepInput` (varsayılan true) | girdi + values |
 | `if` | true/false dallanma | `condition` | girdi, dal `true`/`false` |
+| `loop` | `item` dalını listedeki her eleman için çalıştırır | `items`, `maxItems` (varsayılan 100) | `done`: `items` (her turun son çıktısı), `count` |
+| `aggregate` | Bir listeyi özetler | `items`, `mode` (collect, count, sum, avg, min, max, groupBy, join, unique), `field` (noktalı yol), `separator` | `result`, `count` (groupBy için ayrıca `counts`) |
 | `dedupe` | new/seen dallanma | `key` | girdi, dal `new`/`seen` |
 | `wait` | Bekler | `seconds` (0–300) | girdi |
 | `http` | HTTP isteği | `method`, `url`, `headers`, `body`, `credential` (http-header), `failOnError` | `status`, `ok`, `body` (`failOnError:false` ve çağrı başarısızsa `error`) |

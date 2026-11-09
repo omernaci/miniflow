@@ -88,6 +88,7 @@ The `loop` node runs the nodes connected to its **item** output once per list el
   inside the item branch to handle failures per item and keep going.
 - `maxItems` (default 100, at most 1000) protects against unexpectedly large lists. Loops can be nested.
 - The execution history marks the steps of each iteration with `#1`, `#2`, ...
+- Summarise the `done` output with the `aggregate` node, e.g. `mode: sum`, `field: total` → `{ result, count }`.
 
 ## Retry
 

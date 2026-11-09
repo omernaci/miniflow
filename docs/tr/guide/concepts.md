@@ -86,6 +86,7 @@ Manuel testler yalnızca kontrol eder, kaydetmez.
   devam etmek için item dalının içinde hata dalı kullanın.
 - `maxItems` (varsayılan 100, en fazla 1000) beklenmedik büyüklükteki listelere karşı korur. Döngüler iç içe olabilir.
 - Çalıştırma geçmişinde her turun adımları `#1`, `#2`, ... ile işaretlenir.
+- `done` çıkışını `aggregate` düğümüyle özetleyin, ör. `mode: sum`, `field: total` → `{ result, count }`.
 
 ## Yeniden deneme (retry)
 
