@@ -5,6 +5,8 @@
 | `trigger` | Starts the workflow | `path`, `cron`, `listen`, `sample`, `signatureSecretVar` | trigger data |
 | `set` | Add / change fields | `values`, `keepInput` (default true) | input + values |
 | `if` | Branch true/false | `condition` | input, branch `true`/`false` |
+| `loop` | Run the `item` branch once per list element | `items`, `maxItems` (default 100) | `done`: `items` (last output of each iteration), `count` |
+| `aggregate` | Summarise a list | `items`, `mode` (collect, count, sum, avg, min, max, groupBy, join, unique), `field` (dotted path), `separator` | `result`, `count` (+`counts` for groupBy) |
 | `dedupe` | Branch new/seen | `key` | input, branch `new`/`seen` |
 | `wait` | Pause | `seconds` (0–300) | input |
 | `http` | HTTP request | `method`, `url`, `headers`, `body`, `credential` (http-header), `failOnError` | `status`, `ok`, `body` (+`error` when `failOnError:false` and the call failed) |

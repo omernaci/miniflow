@@ -40,7 +40,7 @@ public class WorkflowEngine {
         log.info("Registered node types: {}", executors.keySet());
     }
 
-    private static final List<String> PALETTE_ORDER = List.of("trigger", "set", "if", "loop", "dedupe", "wait", "http", "ai",
+    private static final List<String> PALETTE_ORDER = List.of("trigger", "set", "if", "loop", "aggregate", "dedupe", "wait", "http", "ai",
             "email", "slack", "github", "googleSheets", "database", "spreadsheet", "rss",
             "redis", "rabbitmq", "kafka", "log");
 
