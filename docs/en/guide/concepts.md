@@ -70,6 +70,25 @@ Scheduled workflows see the same data again and again. `dedupe` remembers a key 
 Keys like `{{ input.id }}`, `order-{{ input.orderNo }}` or `incident-{{ now.substring(0, 13) }}` (= once per hour) are common.
 Manual test runs only check, they never record.
 
+## Loop
+
+The `loop` node runs the nodes connected to its **item** output once per list element, then continues on **done**:
+
+```json
+{ "id": "each-order", "type": "loop", "params": { "items": "{{ orders.rows }}", "maxItems": 100 } },
+{ "from": "each-order", "to": "notify", "branch": "item" },
+{ "from": "each-order", "to": "report", "branch": "done" }
+```
+
+- Inside the item branch `input` is the current element. Maps are passed as they are, other values as
+  `{ "value": ... }`. `{{ loop.index }}` (from 0), `{{ loop.number }}` (from 1), `{{ loop.total }}`,
+  `{{ loop.first }}`, `{{ loop.last }}` and `{{ loop.item }}` describe the current iteration.
+- The **done** output receives `{ "items": [...], "count": n }`: the output of the last node of each iteration.
+- Iterations run one after another. If an item fails, the loop stops and the workflow fails; use an error branch
+  inside the item branch to handle failures per item and keep going.
+- `maxItems` (default 100, at most 1000) protects against unexpectedly large lists. Loops can be nested.
+- The execution history marks the steps of each iteration with `#1`, `#2`, ...
+
 ## Retry
 
 Any node except the trigger can be retried when it fails. Add a `retry` object next to `params`

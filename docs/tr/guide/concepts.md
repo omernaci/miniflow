@@ -67,6 +67,26 @@ Zamanlanmış akışlar aynı veriyi tekrar tekrar görür. `dedupe` bir anahtar
 Sık kullanılan anahtarlar: `{{ input.id }}`, `order-{{ input.orderNo }}`, `incident-{{ now.substring(0, 13) }}` (= saatte bir).
 Manuel testler yalnızca kontrol eder, kaydetmez.
 
+## Döngü (Loop)
+
+`loop` düğümü, **item** çıkışına bağlı düğümleri listedeki her eleman için bir kez çalıştırır, sonra **done**
+çıkışından devam eder:
+
+```json
+{ "id": "each-order", "type": "loop", "params": { "items": "{{ orders.rows }}", "maxItems": 100 } },
+{ "from": "each-order", "to": "notify", "branch": "item" },
+{ "from": "each-order", "to": "report", "branch": "done" }
+```
+
+- item dalında `input` geçerli elemandır. Map'ler olduğu gibi, diğer değerler `{ "value": ... }` olarak gelir.
+  `{{ loop.index }}` (0'dan), `{{ loop.number }}` (1'den), `{{ loop.total }}`, `{{ loop.first }}`,
+  `{{ loop.last }}` ve `{{ loop.item }}` geçerli turu anlatır.
+- **done** çıkışına `{ "items": [...], "count": n }` gelir: her turun son düğümünün çıktısı.
+- Turlar sırayla çalışır. Bir eleman hata verirse döngü durur ve akış hata verir; eleman bazında hataları ele alıp
+  devam etmek için item dalının içinde hata dalı kullanın.
+- `maxItems` (varsayılan 100, en fazla 1000) beklenmedik büyüklükteki listelere karşı korur. Döngüler iç içe olabilir.
+- Çalıştırma geçmişinde her turun adımları `#1`, `#2`, ... ile işaretlenir.
+
 ## Yeniden deneme (retry)
 
 Tetikleyici dışındaki her düğüm, hata verince yeniden denenebilir. `params` alanının yanına bir `retry` nesnesi

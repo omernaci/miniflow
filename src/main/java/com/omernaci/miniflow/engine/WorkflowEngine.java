@@ -6,6 +6,7 @@ import com.omernaci.miniflow.engine.expression.ExpressionResolver;
 import com.omernaci.miniflow.node.NodeExecutor;
 import com.omernaci.miniflow.node.NodeResult;
 import com.omernaci.miniflow.node.NodeTypeInfo;
+import com.omernaci.miniflow.node.core.LoopNode;
 import com.omernaci.miniflow.workflow.RetryPolicy;
 import com.omernaci.miniflow.workflow.Workflow;
 import com.omernaci.miniflow.workflow.Workflow.NodeDef;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedHashMap;
@@ -38,7 +40,7 @@ public class WorkflowEngine {
         log.info("Registered node types: {}", executors.keySet());
     }
 
-    private static final List<String> PALETTE_ORDER = List.of("trigger", "set", "if", "dedupe", "wait", "http", "ai",
+    private static final List<String> PALETTE_ORDER = List.of("trigger", "set", "if", "loop", "dedupe", "wait", "http", "ai",
             "email", "slack", "github", "googleSheets", "database", "spreadsheet", "rss",
             "redis", "rabbitmq", "kafka", "log");
 
@@ -60,10 +62,19 @@ public class WorkflowEngine {
         ExecutionContext ctx = new ExecutionContext(workflow.id(), mode, triggerData);
         Deque<Pending> queue = new ArrayDeque<>();
         queue.add(new Pending(workflow.startNode().id(), ctx.trigger()));
+        drain(workflow, queue, ctx, new int[]{0});
+        return ctx;
+    }
 
-        int stepCount = 0;
+    /**
+     * Runs nodes until the queue is empty. Returns the output of the last node that ran (used as the result
+     * of a loop iteration), or {@code null} when a node failed without an error branch.
+     */
+    private Branch drain(Workflow workflow, Deque<Pending> queue, ExecutionContext ctx, int[] stepCount) {
+        Map<String, Object> last = null;
+        boolean failed = false;
         while (!queue.isEmpty()) {
-            if (++stepCount > MAX_STEPS) {
+            if (++stepCount[0] > MAX_STEPS) {
                 throw new MiniFlowException("error.engine.maxSteps", MAX_STEPS);
             }
             Pending current = queue.poll();
@@ -74,13 +85,56 @@ public class WorkflowEngine {
                     && !workflow.nextNodes(node.id(), NodeDef.ERROR_BRANCH).isEmpty();
             NodeResult result = executeNode(node, current.input(), ctx, errorHandled);
             if (result == null) {
+                failed = true;
                 continue;
             }
+            if (LoopNode.TYPE.equals(node.type()) && LoopNode.ITEM.equals(result.branch())) {
+                result = runLoop(workflow, node, result, ctx, stepCount);
+                if (result == null) {
+                    failed = true;
+                    continue;
+                }
+            }
+            last = result.output();
             for (String next : workflow.nextNodes(node.id(), result.branch())) {
                 queue.add(new Pending(next, result.output()));
             }
         }
-        return ctx;
+        return new Branch(last, failed);
+    }
+
+    /** Runs the {@code item} branch once per item and returns the {@code done} result with all item outputs. */
+    private NodeResult runLoop(Workflow workflow, NodeDef loop, NodeResult started, ExecutionContext ctx,
+                               int[] stepCount) {
+        List<?> items = (List<?>) started.output().get("items");
+        List<String> body = workflow.nextNodes(loop.id(), LoopNode.ITEM);
+        List<Object> results = new ArrayList<>();
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < items.size(); i++) {
+            Object item = items.get(i);
+            ctx.enterLoopItem(i, items.size(), item);
+            Branch iteration;
+            try {
+                Deque<Pending> queue = new ArrayDeque<>();
+                body.forEach(next -> queue.add(new Pending(next, LoopNode.itemInput(item))));
+                iteration = drain(workflow, queue, ctx, stepCount);
+            } finally {
+                ctx.exitLoopItem();
+            }
+            if (iteration.failed()) {
+                String error = Messages.get("error.loop.itemFailed", i + 1, items.size());
+                ctx.record(new ExecutionContext.StepLog(loop.id(), loop.type(), "ERROR", null, null, error,
+                        System.currentTimeMillis() - start, 1));
+                return null;
+            }
+            results.add(iteration.output() == null ? LoopNode.itemInput(item) : iteration.output());
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("items", results);
+        out.put("count", results.size());
+        ctx.record(new ExecutionContext.StepLog(loop.id(), loop.type(), "SUCCESS", LoopNode.DONE, out, null,
+                System.currentTimeMillis() - start, 1));
+        return NodeResult.branch(out, LoopNode.DONE);
     }
 
     private NodeResult executeNode(NodeDef node, Map<String, Object> input, ExecutionContext ctx,
@@ -137,5 +191,8 @@ public class WorkflowEngine {
     }
 
     private record Pending(String nodeId, Map<String, Object> input) {
+    }
+
+    private record Branch(Map<String, Object> output, boolean failed) {
     }
 }

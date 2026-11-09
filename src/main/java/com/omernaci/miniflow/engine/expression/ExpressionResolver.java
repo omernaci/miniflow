@@ -54,7 +54,7 @@ public class ExpressionResolver {
         this.variables = variables;
     }
 
-    private static final Set<String> RESERVED = Set.of("input", "trigger", "nodes", "vars", "now", "today", "nowMillis",
+    private static final Set<String> RESERVED = Set.of("input", "trigger", "nodes", "vars", "loop", "now", "today", "nowMillis",
             "true", "false", "null", "and", "or", "not", "div", "mod", "eq", "ne", "lt", "le", "gt", "ge", "new", "T");
 
     private static final Pattern IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
@@ -96,6 +96,7 @@ public class ExpressionResolver {
         root.put("now", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).toString());
         root.put("today", LocalDate.now().toString());
         root.put("nowMillis", System.currentTimeMillis());
+        root.put("loop", ctx.loop());
 
         EvaluationContext evalCtx = SimpleEvaluationContext
                 .forPropertyAccessors(new LenientMapAccessor(), DataBindingPropertyAccessor.forReadOnlyAccess())

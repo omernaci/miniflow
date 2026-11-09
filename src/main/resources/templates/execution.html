@@ -35,6 +35,7 @@
                 <span class="step-no" th:text="${it.count}">1</span>
                 <strong th:text="${step.nodeId()}">node</strong>
                 <span class="tag" th:text="${step.type()}">type</span>
+                <span class="tag" th:if="${step.iteration() != null}" th:text="#{exec.iteration(${step.iteration()})}">#1</span>
                 <span class="tag branch" th:if="${step.branch() != null and step.branch() != 'main'}"
                       th:text="'→ ' + ${step.branch()}"></span>
                 <span class="tag retry" th:if="${step.attempts() > 1}"

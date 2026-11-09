@@ -14,7 +14,7 @@
         credManage: 'Manage credentials →', credType: 'Required type:',
         dataFromTest: 'from the last test run', dataFromHistory: 'from the last execution',
         dataFromSample: 'from the test data – run a test to see every step', dataNotRun: 'not run yet',
-        dataVars: 'Variables', dataFunctions: 'Functions', dataEmpty: '(empty)',
+        dataVars: 'Variables', dataLoop: 'Current loop item', dataFunctions: 'Functions', dataEmpty: '(empty)',
         dataInput: 'input = output of the previous step',
         dataCopied: 'Copied {0} – click into a parameter value first to insert it directly',
         formAdd: '+ Add', formKeyPh: 'name', formValuePh: 'value or {{ expression }}',
@@ -297,6 +297,7 @@
             const li = document.createElement('li');
             li.className = step.status === 'SUCCESS' ? 'ok' : 'err';
             li.innerHTML = '<strong>' + esc(step.nodeId) + '</strong>' +
+                (step.iteration ? ' <span class="tag">#' + step.iteration + '</span>' : '') +
                 (step.branch && step.branch !== 'main' ? ' <span class="tag branch">→ ' + esc(step.branch) + '</span>' : '') +
                 (step.attempts > 1 ? ' <span class="tag retry">↻ ' + step.attempts + '</span>' : '') +
                 ' <span class="muted">' + step.durationMs + ' ms</span>' +
@@ -905,7 +906,7 @@
     }
 
     const IDENT = /^[A-Za-z_][A-Za-z0-9_]*$/;
-    const RESERVED = ['input', 'trigger', 'nodes', 'vars', 'now', 'today', 'nowMillis', 'true', 'false', 'null',
+    const RESERVED = ['input', 'trigger', 'nodes', 'vars', 'loop', 'now', 'today', 'nowMillis', 'true', 'false', 'null',
         'and', 'or', 'not', 'div', 'mod', 'eq', 'ne', 'lt', 'le', 'gt', 'ge', 'new', 'T',
         'join', 'default', 'format', 'round', 'sum', 'count', 'json'];
 
@@ -1057,6 +1058,12 @@
         const self = editor.getNodeFromId(selectedDfId);
         if (self && self.data.type !== 'trigger') {
             tree.appendChild(group('trigger', '', parents.length === 0, d => renderValue(d, data.trigger || {}, 'trigger', 0)));
+        }
+        if (parents.some(n => n.data.type === 'loop')) {
+            tree.appendChild(group('loop', T.dataLoop, false, d => {
+                ['index', 'number', 'total', 'first', 'last', 'item']
+                    .forEach(k => d.appendChild(leafRow(k, '', 'loop.' + k)));
+            }));
         }
         const varNames = Object.keys(vars);
         tree.appendChild(group('vars', T.dataVars + ' (' + varNames.length + ')', false, d => {
