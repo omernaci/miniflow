@@ -1,5 +1,6 @@
 package com.omernaci.miniflow.workflow;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.omernaci.miniflow.common.exception.MiniFlowException;
 import com.omernaci.miniflow.config.MiniFlowProperties;
 import com.omernaci.miniflow.execution.ExecutionRepository;
@@ -51,7 +52,8 @@ public class WorkflowService {
         this.props = props;
     }
 
-    record Definition(List<Workflow.NodeDef> nodes, List<Workflow.Connection> connections) {
+    record Definition(List<Workflow.NodeDef> nodes, List<Workflow.Connection> connections,
+                      @JsonInclude(JsonInclude.Include.NON_NULL) String errorWorkflow) {
     }
 
     @PostConstruct
@@ -76,7 +78,7 @@ public class WorkflowService {
         WorkflowEntity entity = repository.findById(wf.id()).orElseGet(() -> new WorkflowEntity(wf.id()));
         entity.setName(wf.name() == null || wf.name().isBlank() ? wf.id() : wf.name().trim());
         entity.setActive(wf.active());
-        entity.setDefinitionJson(toJson(new Definition(wf.nodes(), wf.connections())));
+        entity.setDefinitionJson(toJson(new Definition(wf.nodes(), wf.connections(), wf.errorWorkflow())));
         entity.setUpdatedAt(LocalDateTime.now());
         repository.save(entity);
         events.publishEvent(new WorkflowChangedEvent(wf.id()));
@@ -184,6 +186,11 @@ public class WorkflowService {
         if (triggers > 1) {
             throw new MiniFlowException("error.workflow.multipleTriggers");
         }
+        if (wf.errorWorkflow() != null) {
+            if (!wf.errorWorkflow().matches("[A-Za-z0-9_-]{1,100}") || wf.errorWorkflow().equals(wf.id())) {
+                throw new MiniFlowException("error.workflow.invalidErrorWorkflow", wf.errorWorkflow());
+            }
+        }
         for (Workflow.NodeDef node : wf.nodes()) {
             if (node.retry() != null && !node.retry().isValid()) {
                 throw new MiniFlowException("error.workflow.invalidRetry", node.id(), RetryPolicy.MAX_TIMES,
@@ -231,7 +238,7 @@ public class WorkflowService {
     private Workflow toModel(WorkflowEntity e) {
         try {
             Definition d = mapper.readValue(e.getDefinitionJson(), Definition.class);
-            return new Workflow(e.getId(), e.getName(), e.isActive(), d.nodes(), d.connections());
+            return new Workflow(e.getId(), e.getName(), e.isActive(), d.nodes(), d.connections(), d.errorWorkflow());
         } catch (JacksonException ex) {
             throw new IllegalStateException("Could not read workflow definition: " + e.getId(), ex);
         }

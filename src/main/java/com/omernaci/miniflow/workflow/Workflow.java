@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public record Workflow(String id, String name, boolean active, List<NodeDef> nodes, List<Connection> connections) {
+public record Workflow(String id, String name, boolean active, List<NodeDef> nodes, List<Connection> connections,
+                       @JsonInclude(JsonInclude.Include.NON_NULL) String errorWorkflow) {
 
     public record NodeDef(String id, String type, Map<String, Object> params, Integer x, Integer y,
                           @JsonInclude(JsonInclude.Include.NON_NULL) RetryPolicy retry,
@@ -49,14 +50,19 @@ public record Workflow(String id, String name, boolean active, List<NodeDef> nod
     public Workflow {
         nodes = nodes == null ? List.of() : nodes;
         connections = connections == null ? List.of() : connections;
+        errorWorkflow = errorWorkflow == null || errorWorkflow.isBlank() ? null : errorWorkflow.trim();
+    }
+
+    public Workflow(String id, String name, boolean active, List<NodeDef> nodes, List<Connection> connections) {
+        this(id, name, active, nodes, connections, null);
     }
 
     public Workflow(String id, String name, List<NodeDef> nodes, List<Connection> connections) {
-        this(id, name, false, nodes, connections);
+        this(id, name, false, nodes, connections, null);
     }
 
     public Workflow withActive(boolean value) {
-        return new Workflow(id, name, value, nodes, connections);
+        return new Workflow(id, name, value, nodes, connections, errorWorkflow);
     }
 
     public Optional<NodeDef> node(String nodeId) {

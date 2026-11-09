@@ -123,6 +123,31 @@ Hata çıkışına `error` (mesaj), `nodeId`, `type`, `attempts` ve `input` (hat
 denemeden sonra geçilir. Hata bu şekilde ele alındığında çalıştırma başarılı sayılır ve hatalı adım `→ error` ile
 işaretlenir. `error` çıkışına hiçbir şey bağlı değilse akış eskisi gibi durur.
 
+## Hata akışı
+
+Bir akış, kendisi hata verdiğinde çalışacak başka bir akışı belirtebilir; ör. Slack'e yazan ya da AI ile teşhis
+isteyen bir akış. Editörde **Akış ayarları** bölümünden (tuvalde boş bir yere tıklayın) seçin veya JSON'da verin:
+
+```json
+{ "id": "order-pipeline", "errorWorkflow": "notify-on-error", "nodes": [ ... ] }
+```
+
+Kendi hata akışı olmayan tüm akışlar için tek bir hata akışı kullanmak üzere `MINIFLOW_ERROR_WORKFLOW` değişkenini verin.
+
+Hata akışı arka planda şu tetikleyici verisiyle başlatılır:
+
+| Alan | Anlamı |
+|---|---|
+| `workflowId`, `workflowName` | Hata veren akış |
+| `executionId` | Çalıştırması (`/executions/{executionId}` adresinden açılır) |
+| `mode` | Nasıl başlatıldığı: `webhook`, `schedule`, `queue` |
+| `failedNode`, `error` | Hata veren düğüm ve hata mesajı |
+| `startedAt`, `durationMs`, `trigger` | Ne zaman çalıştığı, ne kadar sürdüğü ve tetikleyici verisi |
+
+Yalnızca webhook, zamanlama ve kuyruk çalıştırmalarında çalışır, test çalıştırmalarında çalışmaz. Kendi
+çalıştırmalarının modu `hata akışı`dır ve başka bir hata akışı başlatmaz; bu yüzden hata veren bir hata akışı döngüye
+giremez. Hata dalıyla ele alınan hatalar hata sayılmaz.
+
 ## Çalıştırma geçmişi
 Her çalıştırma düğüm düğüm durum, dal, çıktı, hata ve süreyle saklanır. 20.000 karakteri aşan metinler (ör. dosya içeriği) geçmişte kısaltılır.
 `Authorization` ve `Cookie` başlıkları asla yazılmaz. Geçmiş `execution-retention-days` gün sonra silinir.

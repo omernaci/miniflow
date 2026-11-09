@@ -23,7 +23,7 @@
         </select>
         <select name="mode" onchange="this.form.submit()" th:attr="aria-label=#{exec.col.mode}">
             <option value="" th:text="#{filter.mode.any}">Any trigger</option>
-            <option th:each="m : ${ {'webhook', 'schedule', 'queue', 'manual'} }" th:value="${m}"
+            <option th:each="m : ${ {'webhook', 'schedule', 'queue', 'manual', 'error'} }" th:value="${m}"
                     th:selected="${mode == m}" th:text="#{${'mode.' + m}}">webhook</option>
         </select>
         <input type="hidden" name="size" th:value="${pg.size()}">

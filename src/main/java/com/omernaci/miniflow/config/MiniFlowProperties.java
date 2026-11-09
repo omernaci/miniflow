@@ -13,7 +13,8 @@ public record MiniFlowProperties(Map<String, String> vars,
                                  @DefaultValue("true") boolean seedExamples,
                                  @DefaultValue("en") String defaultLocale,
                                  String encryptionKey,
-                                 @DefaultValue("classpath:workflows/*.json") String seedLocation) {
+                                 @DefaultValue("classpath:workflows/*.json") String seedLocation,
+                                 String errorWorkflow) {
 
     public MiniFlowProperties {
         Map<String, String> ci = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);

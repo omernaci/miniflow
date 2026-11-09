@@ -86,7 +86,7 @@ class CredentialsAndI18nTest {
     @Test
     void wrongKeyCannotDecrypt() {
         String encrypted = crypto.encrypt("{\"a\":\"b\"}");
-        CredentialCrypto other = new CredentialCrypto(new MiniFlowProperties(Map.of(), 14, true, "tr", "baska-anahtar", "classpath:workflows/*.json"));
+        CredentialCrypto other = new CredentialCrypto(new MiniFlowProperties(Map.of(), 14, true, "tr", "baska-anahtar", "classpath:workflows/*.json", null));
         assertThatThrownBy(() -> other.decrypt(encrypted)).isInstanceOf(MiniFlowException.class);
         assertThat(crypto.decrypt(encrypted)).isEqualTo("{\"a\":\"b\"}");
     }

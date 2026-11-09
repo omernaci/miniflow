@@ -125,6 +125,31 @@ e.g. `{{ input.error }}` or `{{ input.input.orderId }}`. Retries run first; the 
 last attempt. When the error is handled this way the execution counts as successful and the failed step is marked
 with `→ error`. If nothing is connected to the `error` output, the workflow stops as before.
 
+## Error workflow
+
+A workflow can name another workflow that runs whenever it fails, e.g. one that posts to Slack or asks AI for a
+diagnosis. Choose it under **Workflow settings** in the editor (click the empty canvas) or set it in the JSON:
+
+```json
+{ "id": "order-pipeline", "errorWorkflow": "notify-on-error", "nodes": [ ... ] }
+```
+
+Set `MINIFLOW_ERROR_WORKFLOW` to use one error workflow for every workflow that does not set its own.
+
+The error workflow is started in the background with this trigger data:
+
+| Field | Meaning |
+|---|---|
+| `workflowId`, `workflowName` | The workflow that failed |
+| `executionId` | Its execution (open `/executions/{executionId}`) |
+| `mode` | How it was started: `webhook`, `schedule`, `queue` |
+| `failedNode`, `error` | The node that failed and its error message |
+| `startedAt`, `durationMs`, `trigger` | When it ran, how long it took and its trigger data |
+
+It runs only for webhook, schedule and queue runs, not for test runs. Its own executions have the mode
+`error handler` and never start another error workflow, so a failing handler cannot cause a loop. Errors handled
+by an error branch do not count as failures.
+
 ## Execution history
 Every run is stored with each node's status, branch, output, error and duration. Long text values (> 20,000 characters, e.g. file contents) are truncated in history.
 `Authorization` and `Cookie` headers are never stored. History is deleted after `execution-retention-days`.
