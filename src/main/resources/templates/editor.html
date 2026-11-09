@@ -66,6 +66,20 @@
                 <p class="small muted" th:text="#{js.data.hint}">Click a field to insert it at the cursor in the parameters.</p>
                 <div id="np-data-tree" class="data-tree"></div>
             </div>
+            <details id="np-retry" class="retry-box" hidden>
+                <summary th:text="#{editor.retry.title}">Retry on failure</summary>
+                <label class="check"><input type="checkbox" id="np-retry-on">
+                    <span th:text="#{editor.retry.enable}">Retry when this node fails</span></label>
+                <div class="retry-grid">
+                    <label><span th:text="#{editor.retry.times}">Retries</span>
+                        <input id="np-retry-times" type="number" min="0" max="5" step="1"></label>
+                    <label><span th:text="#{editor.retry.delay}">First delay (ms)</span>
+                        <input id="np-retry-delay" type="number" min="0" max="30000" step="100"></label>
+                    <label><span th:text="#{editor.retry.backoff}">Backoff</span>
+                        <input id="np-retry-backoff" type="number" min="1" max="10" step="0.5"></label>
+                </div>
+                <p class="small muted" th:text="#{editor.retry.hint}">Waits 1 s, 2 s, 4 s… between attempts (at most 30 s each).</p>
+            </details>
             <p id="np-cred" class="small cred-hint" hidden></p>
             <p class="small muted"><span th:text="#{editor.expressions}">Expressions:</span>
                 <code>{{ input.x }}</code>, <code>{{ trigger.x }}</code>,

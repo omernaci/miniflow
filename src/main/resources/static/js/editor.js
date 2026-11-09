@@ -46,6 +46,8 @@
         npPreview: $('np-preview'), npPreviewList: $('np-preview-list'),
         npDataSource: $('np-data-source'), npDataTree: $('np-data-tree'),
         npTabs: $('np-tabs'), npForm: $('np-form'), npJsonWrap: $('np-json-wrap'),
+        npRetry: $('np-retry'), npRetryOn: $('np-retry-on'), npRetryTimes: $('np-retry-times'),
+        npRetryDelay: $('np-retry-delay'), npRetryBackoff: $('np-retry-backoff'),
         runPanel: $('run-panel'), runBadge: $('run-badge'), runSteps: $('run-steps'), runLink: $('run-link')
     };
 
@@ -116,10 +118,12 @@
         outs.forEach((o, i) => { o.dataset.label = t.outputs[i] || ''; });
     }
 
-    function addNode(type, nodeId, params, x, y) {
+    function addNode(type, nodeId, params, x, y, retry) {
         const t = typeInfo(type);
+        const data = { nodeId: nodeId, type: type, params: params || {} };
+        if (retry) data.retry = retry;
         const dfId = editor.addNode(type, t.hasInput ? 1 : 0, t.outputs.length, x, y,
-            'mf-node type-' + type, { nodeId: nodeId, type: type, params: params || {} }, nodeHtml(t, nodeId));
+            'mf-node type-' + type, data, nodeHtml(t, nodeId));
         labelOutputs(dfId, t);
         return dfId;
     }
@@ -155,7 +159,7 @@
         wf.nodes.forEach(n => {
             const x = n.x != null ? n.x : layout[n.id].x;
             const y = n.y != null ? n.y : layout[n.id].y;
-            dfIds[n.id] = addNode(n.type, n.id, n.params, x, y);
+            dfIds[n.id] = addNode(n.type, n.id, n.params, x, y, n.retry);
             types[n.id] = n.type;
         });
         wf.connections.forEach(c => {
@@ -178,13 +182,15 @@
         const nodes = [];
         const connections = [];
         Object.values(data).forEach(df => {
-            nodes.push({
+            const node = {
                 id: df.data.nodeId,
                 type: df.data.type,
                 params: df.data.params,
                 x: Math.round(df.pos_x),
                 y: Math.round(df.pos_y)
-            });
+            };
+            if (df.data.retry) node.retry = df.data.retry;
+            nodes.push(node);
             const t = typeInfo(df.data.type);
             Object.keys(df.outputs).forEach(outKey => {
                 const idx = parseInt(outKey.split('_')[1], 10) - 1;
@@ -282,6 +288,7 @@
             li.className = step.status === 'SUCCESS' ? 'ok' : 'err';
             li.innerHTML = '<strong>' + esc(step.nodeId) + '</strong>' +
                 (step.branch && step.branch !== 'main' ? ' <span class="tag branch">→ ' + esc(step.branch) + '</span>' : '') +
+                (step.attempts > 1 ? ' <span class="tag retry">↻ ' + step.attempts + '</span>' : '') +
                 ' <span class="muted">' + step.durationMs + ' ms</span>' +
                 (step.error ? '<div class="small err-text">' + esc(step.error) + '</div>' : '');
             if (dfId) li.addEventListener('click', () => showNode(dfId));
@@ -307,6 +314,7 @@
         els.npDesc.textContent = t.description || '';
         els.npId.value = node.data.nodeId;
         els.npParams.value = JSON.stringify(node.data.params || {}, null, 2);
+        fillRetry(node.data.type === 'trigger' ? null : node.data.retry, node.data.type !== 'trigger');
         els.npError.hidden = true;
         showCredentialHint(t);
 
@@ -385,10 +393,45 @@
             panelError(T.paramsNotObject);
             return;
         }
-        editor.updateNodeDataFromId(selectedDfId, { nodeId: newId, type: node.data.type, params: params });
+        const updated = { nodeId: newId, type: node.data.type, params: params };
+        const retry = readRetry();
+        if (retry) updated.retry = retry;
+        editor.updateNodeDataFromId(selectedDfId, updated);
         nodeEl(selectedDfId).querySelector('.node-title').textContent = newId;
         els.npError.hidden = true;
         markDirty();
+    }
+
+    function fillRetry(retry, available) {
+        if (!els.npRetry) return;
+        els.npRetry.hidden = !available;
+        els.npRetryOn.checked = !!retry;
+        els.npRetryTimes.value = retry ? retry.times : 3;
+        els.npRetryDelay.value = retry && retry.delayMs != null ? retry.delayMs : 1000;
+        els.npRetryBackoff.value = retry && retry.backoff != null ? retry.backoff : 2;
+        els.npRetry.open = !!retry;
+        [els.npRetryTimes, els.npRetryDelay, els.npRetryBackoff].forEach(i => { i.disabled = !retry; });
+    }
+
+    function readRetry() {
+        if (!els.npRetry || els.npRetry.hidden || !els.npRetryOn.checked) return null;
+        const num = (input, def, min, max) => {
+            const v = Number(input.value);
+            return Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : def;
+        };
+        return {
+            times: Math.round(num(els.npRetryTimes, 3, 0, 5)),
+            delayMs: Math.round(num(els.npRetryDelay, 1000, 0, 30000)),
+            backoff: num(els.npRetryBackoff, 2, 1, 10)
+        };
+    }
+
+    if (els.npRetry) {
+        els.npRetryOn.addEventListener('change', () => {
+            [els.npRetryTimes, els.npRetryDelay, els.npRetryBackoff].forEach(i => { i.disabled = !els.npRetryOn.checked; });
+            applyNode();
+        });
+        [els.npRetryTimes, els.npRetryDelay, els.npRetryBackoff].forEach(i => i.addEventListener('change', applyNode));
     }
 
     const TRUE_BY_DEFAULT = ['failOnError', 'keepInput', 'declareQueue', 'persistent'];

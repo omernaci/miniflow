@@ -37,6 +37,8 @@
                 <span class="tag" th:text="${step.type()}">type</span>
                 <span class="tag branch" th:if="${step.branch() != null and step.branch() != 'main'}"
                       th:text="'→ ' + ${step.branch()}"></span>
+                <span class="tag retry" th:if="${step.attempts() > 1}"
+                      th:text="#{exec.attempts(${step.attempts()})}">↻ 3 attempts</span>
                 <span class="spacer"></span>
                 <span class="muted" th:text="${step.durationMs()} + ' ms'"></span>
             </summary>

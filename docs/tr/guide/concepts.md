@@ -67,6 +67,26 @@ Zamanlanmış akışlar aynı veriyi tekrar tekrar görür. `dedupe` bir anahtar
 Sık kullanılan anahtarlar: `{{ input.id }}`, `order-{{ input.orderNo }}`, `incident-{{ now.substring(0, 13) }}` (= saatte bir).
 Manuel testler yalnızca kontrol eder, kaydetmez.
 
+## Yeniden deneme (retry)
+
+Tetikleyici dışındaki her düğüm, hata verince yeniden denenebilir. `params` alanının yanına bir `retry` nesnesi
+ekleyin (veya düğüm panelinde **Hata olursa yeniden dene** bölümünü açın):
+
+```json
+{ "id": "call-api", "type": "http", "retry": { "times": 3, "delayMs": 1000, "backoff": 2.0 },
+  "params": { "url": "https://api.example.com/orders" } }
+```
+
+| Alan | Varsayılan | Anlamı |
+|---|---|---|
+| `times` | — | İlk denemeden sonra en fazla kaç kez daha denenir, 0–5 |
+| `delayMs` | `1000` | İlk tekrar öncesi bekleme, 0–30000 ms |
+| `backoff` | `2.0` | Sonraki her beklemenin çarpanı, 1–10 (burada: 1 sn, 2 sn, 4 sn) |
+
+Tek bir bekleme 30 saniyeyi geçmez. İfadeler her denemede yeniden çözülür ve her hata yeniden denenir.
+Çalıştırma geçmişinde deneme sayısı görünür (↻ 3 deneme). Webhook'lar denemelerin bitmesini bekler; eşzamanlı
+webhook akışlarında `times` ve `delayMs` değerlerini küçük tutun.
+
 ## Çalıştırma geçmişi
 Her çalıştırma düğüm düğüm durum, dal, çıktı, hata ve süreyle saklanır. 20.000 karakteri aşan metinler (ör. dosya içeriği) geçmişte kısaltılır.
 `Authorization` ve `Cookie` başlıkları asla yazılmaz. Geçmiş `execution-retention-days` gün sonra silinir.

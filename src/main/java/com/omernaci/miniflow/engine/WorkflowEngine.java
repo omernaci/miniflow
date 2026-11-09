@@ -1,10 +1,12 @@
 package com.omernaci.miniflow.engine;
 
 import com.omernaci.miniflow.common.exception.MiniFlowException;
+import com.omernaci.miniflow.common.i18n.Messages;
 import com.omernaci.miniflow.engine.expression.ExpressionResolver;
 import com.omernaci.miniflow.node.NodeExecutor;
 import com.omernaci.miniflow.node.NodeResult;
 import com.omernaci.miniflow.node.NodeTypeInfo;
+import com.omernaci.miniflow.workflow.RetryPolicy;
 import com.omernaci.miniflow.workflow.Workflow;
 import com.omernaci.miniflow.workflow.Workflow.NodeDef;
 import org.slf4j.Logger;
@@ -81,20 +83,41 @@ public class WorkflowEngine {
     private NodeResult executeNode(NodeDef node, Map<String, Object> input, ExecutionContext ctx) {
         long start = System.currentTimeMillis();
         NodeExecutor executor = executors.get(node.type());
-        try {
-            if (executor == null) {
-                throw new MiniFlowException("error.engine.unknownNodeType", node.type());
-            }
-            Map<String, Object> params = expressions.resolve(node.params(), input, ctx);
-            NodeResult result = executor.execute(params, input, ctx);
-            ctx.record(new ExecutionContext.StepLog(node.id(), node.type(), "SUCCESS", result.branch(),
-                    result.output(), null, System.currentTimeMillis() - start));
-            return result;
-        } catch (Exception e) {
-            log.warn("Node '{}' failed: {}", node.id(), e.getMessage());
-            ctx.record(new ExecutionContext.StepLog(node.id(), node.type(), "ERROR", null,
-                    null, e.getMessage(), System.currentTimeMillis() - start));
+        if (executor == null) {
+            String error = Messages.get("error.engine.unknownNodeType", node.type());
+            ctx.record(new ExecutionContext.StepLog(node.id(), node.type(), "ERROR", null, null, error, 0, 1));
             return null;
+        }
+        RetryPolicy retry = node.retry();
+        int maxAttempts = retry == null ? 1 : retry.times() + 1;
+        for (int attempt = 1; ; attempt++) {
+            try {
+                Map<String, Object> params = expressions.resolve(node.params(), input, ctx);
+                NodeResult result = executor.execute(params, input, ctx);
+                ctx.record(new ExecutionContext.StepLog(node.id(), node.type(), "SUCCESS", result.branch(),
+                        result.output(), null, System.currentTimeMillis() - start, attempt));
+                return result;
+            } catch (Exception e) {
+                if (attempt < maxAttempts && sleepBeforeRetry(node, retry, attempt, e)) {
+                    continue;
+                }
+                log.warn("Node '{}' failed after {} attempt(s): {}", node.id(), attempt, e.getMessage());
+                ctx.record(new ExecutionContext.StepLog(node.id(), node.type(), "ERROR", null,
+                        null, e.getMessage(), System.currentTimeMillis() - start, attempt));
+                return null;
+            }
+        }
+    }
+
+    private static boolean sleepBeforeRetry(NodeDef node, RetryPolicy retry, int attempt, Exception error) {
+        long delay = retry.delayBeforeRetry(attempt);
+        log.info("Node '{}' failed (attempt {}), retrying in {} ms: {}", node.id(), attempt, delay, error.getMessage());
+        try {
+            Thread.sleep(delay);
+            return true;
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            return false;
         }
     }
 

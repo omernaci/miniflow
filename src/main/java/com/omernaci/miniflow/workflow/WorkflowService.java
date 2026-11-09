@@ -184,6 +184,12 @@ public class WorkflowService {
         if (triggers > 1) {
             throw new MiniFlowException("error.workflow.multipleTriggers");
         }
+        for (Workflow.NodeDef node : wf.nodes()) {
+            if (node.retry() != null && !node.retry().isValid()) {
+                throw new MiniFlowException("error.workflow.invalidRetry", node.id(), RetryPolicy.MAX_TIMES,
+                        RetryPolicy.MAX_DELAY_MS);
+            }
+        }
         wf.cron().ifPresent(expr -> {
             try {
                 CronExpression.parse(CronSupport.normalize(expr));

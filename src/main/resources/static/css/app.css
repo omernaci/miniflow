@@ -970,3 +970,11 @@ input[type=checkbox] { accent-color: var(--accent); }
 .bk-fields > .btn { align-self: flex-start; }
 .bk-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .bk-bar select { width: auto; flex: 0 0 auto; }
+
+.retry-box { border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; margin: 8px 0; }
+.retry-box summary { cursor: pointer; font-weight: 700; }
+.retry-box .check { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.retry-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.retry-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.retry-grid input { width: 100%; }
+.tag.retry { background: var(--warn-bg); color: var(--warn); }

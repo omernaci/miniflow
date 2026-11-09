@@ -1,5 +1,6 @@
 package com.omernaci.miniflow.workflow;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.omernaci.miniflow.common.exception.MiniFlowException;
 
 import java.util.List;
@@ -8,14 +9,19 @@ import java.util.Optional;
 
 public record Workflow(String id, String name, boolean active, List<NodeDef> nodes, List<Connection> connections) {
 
-    public record NodeDef(String id, String type, Map<String, Object> params, Integer x, Integer y) {
+    public record NodeDef(String id, String type, Map<String, Object> params, Integer x, Integer y,
+                          @JsonInclude(JsonInclude.Include.NON_NULL) RetryPolicy retry) {
 
         public NodeDef {
             params = params == null ? Map.of() : params;
         }
 
+        public NodeDef(String id, String type, Map<String, Object> params, Integer x, Integer y) {
+            this(id, type, params, x, y, null);
+        }
+
         public NodeDef(String id, String type, Map<String, Object> params) {
-            this(id, type, params, null, null);
+            this(id, type, params, null, null, null);
         }
     }
 

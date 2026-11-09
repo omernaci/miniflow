@@ -55,6 +55,11 @@ public class ExecutionContext {
     }
 
     public record StepLog(String nodeId, String type, String status, String branch,
-                          Map<String, Object> output, String error, long durationMs) {
+                          Map<String, Object> output, String error, long durationMs, int attempts) {
+
+        public StepLog(String nodeId, String type, String status, String branch,
+                       Map<String, Object> output, String error, long durationMs) {
+            this(nodeId, type, status, branch, output, error, durationMs, 1);
+        }
     }
 }
