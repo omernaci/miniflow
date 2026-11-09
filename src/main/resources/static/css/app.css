@@ -935,6 +935,7 @@ input[type=checkbox] { accent-color: var(--accent); }
 .hbars .mode-schedule .hbar-fill { background: #1f7fd1; }
 .hbars .mode-queue .hbar-fill { background: #c27c00; }
 .hbars .mode-manual .hbar-fill { background: #b05cc8; }
+.hbars .mode-error .hbar-fill { background: var(--chart-err); }
 
 .chart-svg { position: absolute; inset: 0 0 22px 0; width: 100%; height: calc(100% - 22px); overflow: visible; pointer-events: none; }
 .chart-svg .ok-stop-top { stop-color: var(--chart-ok); stop-opacity: .28; }

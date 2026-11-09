@@ -37,6 +37,7 @@
     const $ = id => document.getElementById(id);
     const els = {
         canvas: $('drawflow'), name: $('wf-name'), active: $('wf-active'), status: $('status'),
+        errorWorkflow: $('wf-error-workflow'),
         save: $('btn-save'), run: $('btn-run'),
         emptyPanel: $('empty-panel'), nodePanel: $('node-panel'),
         npType: $('np-type'), npDesc: $('np-desc'), npId: $('np-id'), npParams: $('np-params'),
@@ -242,6 +243,7 @@
             id: wf.id,
             name: els.name.value.trim() || wf.id,
             active: els.active.checked,
+            errorWorkflow: els.errorWorkflow && els.errorWorkflow.value ? els.errorWorkflow.value : null,
             nodes: nodes,
             connections: connections
         };
@@ -1271,6 +1273,7 @@
     editor.on('nodeRemoved', id => { if (String(id) === selectedDfId) hideNode(); markDirty(); });
     ['nodeCreated', 'nodeMoved', 'connectionCreated', 'connectionRemoved'].forEach(ev => editor.on(ev, markDirty));
     els.name.addEventListener('input', markDirty);
+    if (els.errorWorkflow) els.errorWorkflow.addEventListener('change', markDirty);
     els.active.addEventListener('change', () => {
         save()
             .then(() => setStatus(els.active.checked ? T.active : T.inactive, 'ok'))

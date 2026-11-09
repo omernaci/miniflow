@@ -37,6 +37,16 @@
         <section id="empty-panel">
             <h3 th:text="#{editor.node}">Node</h3>
             <p class="muted" th:text="#{editor.selectNode}">Select a node on the canvas to edit it.</p>
+            <h3 th:text="#{editor.settings}">Workflow settings</h3>
+            <label><span th:text="#{editor.errorWorkflow}">Error workflow</span>
+                <select id="wf-error-workflow">
+                    <option value="" th:text="#{editor.errorWorkflow.none}">Default (miniflow.error-workflow)</option>
+                    <option th:each="o : ${otherWorkflows}" th:value="${o.id()}"
+                            th:selected="${o.id() == workflow.errorWorkflow()}"
+                            th:text="${o.name()} + ' (' + ${o.id()} + ')'">other</option>
+                </select>
+            </label>
+            <p class="small muted" th:text="#{editor.errorWorkflow.hint}">Runs when this workflow fails (webhook, schedule or queue runs; not test runs).</p>
         </section>
 
         <section id="node-panel" hidden>

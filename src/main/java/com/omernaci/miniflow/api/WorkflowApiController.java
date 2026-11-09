@@ -78,7 +78,7 @@ public class WorkflowApiController {
 
     @PutMapping("/api/workflows/{id}")
     public Workflow save(@PathVariable String id, @RequestBody Workflow body) {
-        return store.save(new Workflow(id, body.name(), body.active(), body.nodes(), body.connections()));
+        return store.save(new Workflow(id, body.name(), body.active(), body.nodes(), body.connections(), body.errorWorkflow()));
     }
 
     @PostMapping("/api/workflows/import")

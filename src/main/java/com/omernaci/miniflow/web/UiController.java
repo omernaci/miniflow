@@ -224,6 +224,10 @@ public class UiController {
         model.addAttribute("credentials", credentials.list().stream()
                 .map(c -> Map.of("name", c.name(), "type", c.type())).toList());
         model.addAttribute("vars", new TreeMap<>(variables.all()));
+        model.addAttribute("otherWorkflows", workflows.all().stream()
+                .filter(other -> !other.id().equals(wf.id()))
+                .sorted(Comparator.comparing(other -> other.name() == null ? other.id() : other.name()))
+                .toList());
         return "editor";
     }
 
