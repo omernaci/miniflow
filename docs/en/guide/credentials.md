@@ -9,6 +9,8 @@ The realistic examples use these names — create them once and all examples wor
 | Name | Type | How to get the values |
 |---|---|---|
 | `slack` | Slack | Slack → *Apps* → **Incoming Webhooks** → add to a channel → copy the `https://hooks.slack.com/services/…` URL into `webhookUrl` |
+| `teams` | Microsoft Teams | Teams channel → *•••* → **Workflows** (or the Incoming Webhook connector) → create a webhook that posts to the channel → copy the URL into `webhookUrl` |
+| `discord` | Discord | Discord channel → *Edit Channel* → **Integrations** → **Webhooks** → New Webhook → copy the `https://discord.com/api/webhooks/…` URL into `webhookUrl` |
 | `smtp` | SMTP | Gmail: host `smtp.gmail.com`, port `587`, starttls `true`, username = your address, password = an **App password** (needs 2-step verification). Office 365: `smtp.office365.com`, 587. Local testing: Mailpit `localhost:1025`, starttls `false`. `from` e.g. `Shop <noreply@yourshop.com>` |
 | `shop-db` | Database | JDBC URL + user/password of the shop database. Demo: `jdbc:h2:file:./data/miniflow`, user `sa`, empty password, after running `examples/sql/shop-schema.sql` (see §11) |
 | `miniflow-db` | Database | MiniFlow's own DB for the execution report: `jdbc:h2:file:./data/miniflow`, `sa`, empty (or your PostgreSQL URL) |

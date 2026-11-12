@@ -12,6 +12,8 @@
 | `http` | HTTP isteği | `method`, `url`, `headers`, `body`, `credential` (http-header), `failOnError` | `status`, `ok`, `body` (`failOnError:false` ve çağrı başarısızsa `error`) |
 | `log` | Uygulama loguna yazar | `message` | girdi + `logged` |
 | `slack` | Kanala mesaj | `credential`, `text` | `sent`, `status` |
+| `teams` | Microsoft Teams kanalına mesaj | `credential`, `text`, `card` (Adaptive Card) | `sent`, `status` |
+| `discord` | Discord kanalına mesaj | `credential`, `text`, `username` | `sent`, `status` |
 | `email` | SMTP ile gönderir | `credential`, `to`, `cc`, `subject`, `text`, `html` (bool), `attachments` | `sent` |
 | `database` | SQL çalıştırır | `credential`, `query`, `params`, `maxRows` | SELECT: `rows`, `count`, `first`; diğer: `updated` |
 | `spreadsheet` | CSV / XLSX üretir | `rows`, `format` (xlsx/csv), `fileName`, `columns`, `sheetName`, `delimiter` | `file`, `rowCount`, `columns` |

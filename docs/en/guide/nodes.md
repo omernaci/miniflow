@@ -12,6 +12,8 @@
 | `http` | HTTP request | `method`, `url`, `headers`, `body`, `credential` (http-header), `failOnError` | `status`, `ok`, `body` (+`error` when `failOnError:false` and the call failed) |
 | `log` | Write to application log | `message` | input + `logged` |
 | `slack` | Post to a channel | `credential`, `text` | `sent`, `status` |
+| `teams` | Post to a Microsoft Teams channel | `credential`, `text`, `card` (Adaptive Card) | `sent`, `status` |
+| `discord` | Post to a Discord channel | `credential`, `text`, `username` | `sent`, `status` |
 | `email` | Send via SMTP | `credential`, `to`, `cc`, `subject`, `text`, `html` (bool), `attachments` | `sent` |
 | `database` | Run SQL | `credential`, `query`, `params`, `maxRows` | SELECT: `rows`, `count`, `first`; other: `updated` |
 | `spreadsheet` | Build CSV / XLSX | `rows`, `format` (xlsx/csv), `fileName`, `columns`, `sheetName`, `delimiter` | `file`, `rowCount`, `columns` |

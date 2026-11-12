@@ -9,6 +9,8 @@ Gerçekçi örnekler şu adları kullanır — bir kez oluşturun, tüm örnekle
 | Ad | Tip | Değerler nereden alınır |
 |---|---|---|
 | `slack` | Slack | Slack → *Apps* → **Incoming Webhooks** → kanala ekleyin → `https://hooks.slack.com/services/…` adresini `webhookUrl` alanına |
+| `teams` | Microsoft Teams | Teams kanalı → *•••* → **Workflows** (ya da Incoming Webhook bağlayıcısı) → kanala gönderen bir webhook oluşturun → adresi `webhookUrl` alanına |
+| `discord` | Discord | Discord kanalı → *Edit Channel* → **Integrations** → **Webhooks** → New Webhook → `https://discord.com/api/webhooks/…` adresini `webhookUrl` alanına |
 | `smtp` | SMTP | Gmail: `smtp.gmail.com`, port `587`, starttls `true`, kullanıcı = adresiniz, şifre = **Uygulama şifresi** (2 adımlı doğrulama gerekir). Office 365: `smtp.office365.com`, 587. Yerel test: Mailpit `localhost:1025`, starttls `false`. `from` ör. `Shop <noreply@magazam.com>` |
 | `shop-db` | Veritabanı | Mağaza veritabanının JDBC URL'si + kullanıcı/şifre. Demo: `jdbc:h2:file:./data/miniflow`, kullanıcı `sa`, şifre boş; önce `examples/sql/shop-schema.sql` çalıştırılır (bkz. §11) |
 | `miniflow-db` | Veritabanı | Çalıştırma raporu için MiniFlow'un kendi veritabanı: `jdbc:h2:file:./data/miniflow`, `sa`, boş (veya PostgreSQL adresiniz) |
