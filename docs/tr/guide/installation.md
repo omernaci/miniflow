@@ -1,14 +1,14 @@
 # Kurulum ve çalıştırma
 
 ## Gereksinimler
-- Java 21 ve Maven 3.9+
+- Java 21 (Maven zorunlu değil; proje Maven Wrapper ile gelir, komutlar `./mvnw` kullanır)
 - Tarayıcının internete erişimi (editör Drawflow'u jsDelivr CDN'den yükler)
 - İsteğe bağlı: Docker (PostgreSQL / Redis / RabbitMQ / Kafka için)
 
 ## Başlatma
 ```bash
-mvn spring-boot:run          # http://localhost:8080
-mvn test                     # testler (dış servis gerekmez)
+./mvnw spring-boot:run        # http://localhost:8080
+./mvnw test                  # testler (dış servis gerekmez)
 ```
 
 İlk açılışta src/main/resources/workflows içindeki MiniFlow izleme akışları (istatistik, hata alarmı, haftalık özet) 
@@ -16,7 +16,7 @@ yüklenir; bunlar PostgreSQL ve miniflow-db / slack kimlik bilgilerini ister. Ve
 
 ## Jar oluşturma
 ```bash
-mvn -DskipTests package
+./mvnw -DskipTests package
 java -jar target/miniflow-*.jar
 ```
 
@@ -25,7 +25,7 @@ java -jar target/miniflow-*.jar
 cp .env .env          # MINIFLOW_DB_PASSWORD ve MINIFLOW_ENCRYPTION_KEY değerlerini girin
 docker compose up -d          # localhost:5432'de PostgreSQL 17
 export $(grep -v '^#' .env | xargs)
-mvn spring-boot:run -Dspring-boot.run.profiles=postgres
+./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 ```
 IntelliJ IDEA'da aktif profili `postgres` yapın ve `.env` içindeki değişkenleri çalıştırma yapılandırmasına ekleyin.
 Tablolar otomatik oluşur (`ddl-auto=update`).
@@ -51,7 +51,7 @@ Depoda hiçbir gizli bilgi tutulmaz. Tüm ayarlar ortam değişkenlerinden gelir
 | `MINIFLOW_H2_CONSOLE` | `false` | `/h2-console` adresinde H2 konsolunu açar (yalnızca geliştirme) |
 | `MINIFLOW_VARS_<AD>` | — | Başlangıç değişkenleri, ör. `MINIFLOW_VARS_GITHUBTOKEN` ([Değişkenler](variables.md)) |
 
-Arayüzü Türkçe açmak için: `MINIFLOW_DEFAULT_LOCALE=tr mvn spring-boot:run` (veya sağ üstten **TR**).
+Arayüzü Türkçe açmak için: `MINIFLOW_DEFAULT_LOCALE=tr ./mvnw spring-boot:run` (veya sağ üstten **TR**).
 
 ## Örneklerin konuştuğu servisleri yerelde çalıştırmak (isteğe bağlı)
 ```bash

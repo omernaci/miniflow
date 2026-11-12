@@ -2,11 +2,11 @@
 
 ## Build and test
 
-Requirements: Java 21 and Maven 3.9+.
+Requirements: Java 21. The commands below use the Maven Wrapper (`./mvnw`); a locally installed Maven 3.9+ works too.
 
 ```bash
-mvn verify                    # compile and run all tests (no external services needed)
-mvn spring-boot:run           # start on http://localhost:8080 with an H2 database in ./data
+./mvnw verify                  # compile and run all tests (no external services needed)
+./mvnw spring-boot:run         # start on http://localhost:8080 with an H2 database in ./data
 ```
 
 Tests use an in-memory H2 database (`src/test/resources/application-test.properties`) and local fake servers
@@ -125,4 +125,4 @@ Copy `messages.properties` to e.g. `messages_de.properties`, translate it and ad
 
 - Use the form `[Module] Short description`, e.g. `[Node] Add Microsoft Teams node` or `[Editor] Fix form refresh`.
 - Keep pull requests focused; describe what changed and how you tested it (see the pull request template).
-- `mvn verify` must pass.
+- `./mvnw verify` must pass.

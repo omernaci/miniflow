@@ -30,12 +30,12 @@ Key features:
 
 ## Quick start
 
-Requirements: Java 21 and Maven 3.9+.
+Requirements: Java 21. Maven is optional; the commands below use the bundled Maven Wrapper (`./mvnw`).
 
 ```bash
 git clone https://github.com/omernaci/miniflow.git
 cd miniflow
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 Open http://localhost:8080, then import the basic examples and run one:

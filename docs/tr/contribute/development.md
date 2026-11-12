@@ -2,11 +2,11 @@
 
 ## Derleme ve test
 
-Gereksinimler: Java 21 ve Maven 3.9+.
+Gereksinimler: Java 21. Komutlar Maven Wrapper (`./mvnw`) kullanır; yerel Maven 3.9+ de çalışır.
 
 ```bash
-mvn verify                    # derler ve tüm testleri çalıştırır (dış servis gerekmez)
-mvn spring-boot:run           # ./data içindeki H2 veritabanıyla http://localhost:8080 adresinde başlatır
+./mvnw verify                  # derler ve tüm testleri çalıştırır (dış servis gerekmez)
+./mvnw spring-boot:run         # ./data içindeki H2 veritabanıyla http://localhost:8080 adresinde başlatır
 ```
 
 Testler bellek içi H2 veritabanı (`src/test/resources/application-test.properties`) ve HTTP, SMTP, GitHub, Google
@@ -81,4 +81,4 @@ içine dil bağlantısını ekleyin.
 
 - `[Modül] Kısa açıklama` biçimini kullanın, ör. `[Node] Add Microsoft Teams node`.
 - Pull request'leri odaklı tutun; neyin değiştiğini ve nasıl test ettiğinizi yazın (PR şablonu).
-- `mvn verify` geçmelidir.
+- `./mvnw verify` geçmelidir.

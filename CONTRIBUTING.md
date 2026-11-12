@@ -15,7 +15,7 @@ Thanks for your interest in MiniFlow! Bug reports, ideas, documentation and code
 1. Fork the repository and create a branch from `main`, e.g. `feature/teams-node` or `fix/editor-form-refresh`.
 2. Make your change following the [development guide](docs/en/contribute/development.md):
    feature packages under `com.omernaci.miniflow`, English code and log messages, user-facing text in the message files.
-3. Add or update tests and run `mvn verify`.
+3. Add or update tests and run `./mvnw verify`.
 4. Update the documentation in `docs/en` (and `docs/tr` if you can) when behaviour changes.
 5. Commit with a message like `[Node] Add Microsoft Teams node` and open a pull request using the template.
 

@@ -1,14 +1,14 @@
 # Install and run
 
 ## Requirements
-- Java 21 and Maven 3.9+
+- Java 21 (Maven is optional; the project ships the Maven Wrapper, so the commands below use `./mvnw`)
 - Internet access from the browser (the editor loads Drawflow from the jsDelivr CDN)
 - Optional: Docker (for PostgreSQL / Redis / RabbitMQ / Kafka on your machine)
 
 ## Start
 ```bash
-mvn spring-boot:run          # http://localhost:8080
-mvn test                     # runs the test suite (no external services needed)
+./mvnw spring-boot:run        # http://localhost:8080
+./mvnw test                  # runs the test suite (no external services needed)
 ```
 
 On the first start, the MiniFlow monitoring workflows in src/main/resources/workflows (stats, error alert, weekly summary) 
@@ -16,7 +16,7 @@ are loaded; they need PostgreSQL and the miniflow-db / slack credentials. Data i
 
 ## Build a jar
 ```bash
-mvn -DskipTests package
+./mvnw -DskipTests package
 java -jar target/miniflow-*.jar
 ```
 
@@ -25,7 +25,7 @@ java -jar target/miniflow-*.jar
 cp .env .env          # set MINIFLOW_DB_PASSWORD and MINIFLOW_ENCRYPTION_KEY
 docker compose up -d          # PostgreSQL 17 on localhost:5432
 export $(grep -v '^#' .env | xargs)
-mvn spring-boot:run -Dspring-boot.run.profiles=postgres
+./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 ```
 In IntelliJ IDEA, set the active profile to `postgres` and add the variables from `.env` to the run configuration.
 Tables are created automatically (`ddl-auto=update`).
