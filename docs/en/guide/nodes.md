@@ -11,6 +11,7 @@
 | `wait` | Pause | `seconds` (0–300) | input |
 | `http` | HTTP request | `method`, `url`, `headers`, `body`, `credential` (http-header), `failOnError` | `status`, `ok`, `body` (+`error` when `failOnError:false` and the call failed) |
 | `log` | Write to application log | `message` | input + `logged` |
+| `respond` | Set the webhook HTTP response | `status`, `headers`, `body` | the response itself |
 | `slack` | Post to a channel | `credential`, `text` | `sent`, `status` |
 | `email` | Send via SMTP | `credential`, `to`, `cc`, `subject`, `text`, `html` (bool), `attachments` | `sent` |
 | `database` | Run SQL | `credential`, `query`, `params`, `maxRows` | SELECT: `rows`, `count`, `first`; other: `updated` |
@@ -31,4 +32,5 @@ Notes:
 - **Gists:** `content` can be text or a list of rows. Rows become a Markdown table for `.md`, CSV for `.csv`, pretty JSON otherwise — so `"content": "{{ nodes['query'].rows }}"` with `"fileName": "report.md"` just works. Gists are secret unless `"public": true` (secret gists are unlisted, not private: anyone with the link can read them).
 - **AI with `json: true`:** describe the exact JSON shape in `system`; the parsed object is in `data`.
 - **HTTP monitoring:** use `"failOnError": false` so 4xx/5xx *and* connection errors don't stop the flow; check `{{ !input.ok }}`.
+- **Webhook response:** without a `respond` node a webhook returns the last node's output with status 200. Add a `respond` node to choose the `status`, `headers` and `body` yourself, e.g. `{"status": 201, "headers": {"Location": "/orders/{{ input.id }}"}, "body": "{{ input }}"}`. A JSON `body` is sent as JSON, a string as text. The last successful `respond` node wins.
 - Error messages never include URLs, so webhook URLs and tokens don't leak into history.

@@ -8,6 +8,7 @@ import com.omernaci.miniflow.execution.Execution;
 import com.omernaci.miniflow.execution.ExecutionService;
 import com.omernaci.miniflow.execution.ExecutionStore;
 import com.omernaci.miniflow.node.NodeTypeInfo;
+import com.omernaci.miniflow.node.core.RespondNode;
 import com.omernaci.miniflow.variable.VariableService;
 import com.omernaci.miniflow.workflow.Workflow;
 import com.omernaci.miniflow.workflow.WorkflowService;
@@ -138,7 +139,7 @@ public class WorkflowApiController {
     }
 
     @PostMapping("/webhook/{path}")
-    public ResponseEntity<WebhookResponse> webhookPost(@PathVariable String path, HttpServletRequest request)
+    public ResponseEntity<?> webhookPost(@PathVariable String path, HttpServletRequest request)
             throws IOException {
         Workflow wf = activeWebhook(path);
         Map<String, Object> data;
@@ -158,9 +159,9 @@ public class WorkflowApiController {
     }
 
     @GetMapping("/webhook/{path}")
-    public ResponseEntity<WebhookResponse> webhookGet(@PathVariable String path,
-                                                      @RequestParam Map<String, String> query,
-                                                      HttpServletRequest request) {
+    public ResponseEntity<?> webhookGet(@PathVariable String path,
+                                        @RequestParam Map<String, String> query,
+                                        HttpServletRequest request) {
         Workflow wf = activeWebhook(path);
         verifySignature(wf, new byte[0], request);
         Map<String, Object> data = new LinkedHashMap<>(query);
@@ -236,12 +237,36 @@ public class WorkflowApiController {
         }
     }
 
-    private ResponseEntity<WebhookResponse> execute(Workflow wf, Map<String, Object> data) {
+    private ResponseEntity<?> execute(Workflow wf, Map<String, Object> data) {
         Execution ex = executions.run(wf, data, "webhook");
+        if ("SUCCESS".equals(ex.status())) {
+            Optional<ResponseEntity<?>> custom = customResponse(ex);
+            if (custom.isPresent()) {
+                return custom.get();
+            }
+        }
         var last = ex.steps().isEmpty() ? null : ex.steps().get(ex.steps().size() - 1);
         Object payload = last == null ? null : (last.error() != null ? Map.of("error", last.error()) : last.output());
         HttpStatus status = "SUCCESS".equals(ex.status()) ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(status).body(new WebhookResponse(ex.id(), ex.status(), payload));
+    }
+
+    /** Honours a {@code respond} node (issue #12): the last successful one sets status, headers and body. */
+    private Optional<ResponseEntity<?>> customResponse(Execution ex) {
+        var respond = ex.steps().stream()
+                .filter(s -> "respond".equals(s.type()) && "SUCCESS".equals(s.status()) && s.output() != null
+                        && Boolean.TRUE.equals(s.output().get(RespondNode.MARKER)))
+                .reduce((first, second) -> second);
+        if (respond.isEmpty()) {
+            return Optional.empty();
+        }
+        Map<String, Object> out = respond.get().output();
+        int status = out.get("status") instanceof Number n ? n.intValue() : 200;
+        ResponseEntity.BodyBuilder builder = ResponseEntity.status(status);
+        if (out.get("headers") instanceof Map<?, ?> headers) {
+            headers.forEach((k, v) -> builder.header(String.valueOf(k), String.valueOf(v)));
+        }
+        return Optional.of(builder.body(out.get("body")));
     }
 
     public record WebhookResponse(String executionId, String status, Object data) {

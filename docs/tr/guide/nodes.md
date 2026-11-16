@@ -11,6 +11,7 @@
 | `wait` | Bekler | `seconds` (0–300) | girdi |
 | `http` | HTTP isteği | `method`, `url`, `headers`, `body`, `credential` (http-header), `failOnError` | `status`, `ok`, `body` (`failOnError:false` ve çağrı başarısızsa `error`) |
 | `log` | Uygulama loguna yazar | `message` | girdi + `logged` |
+| `respond` | Webhook HTTP yanıtını belirler | `status`, `headers`, `body` | yanıtın kendisi |
 | `slack` | Kanala mesaj | `credential`, `text` | `sent`, `status` |
 | `email` | SMTP ile gönderir | `credential`, `to`, `cc`, `subject`, `text`, `html` (bool), `attachments` | `sent` |
 | `database` | SQL çalıştırır | `credential`, `query`, `params`, `maxRows` | SELECT: `rows`, `count`, `first`; diğer: `updated` |
@@ -31,4 +32,5 @@ Notlar:
 - **Gist:** `content` metin veya satır listesi olabilir. Satırlar `.md` için Markdown tablo, `.csv` için CSV, diğerlerinde biçimli JSON olur — yani `"content": "{{ nodes['query'].rows }}"` ve `"fileName": "report.md"` yeterli. `"public": true` verilmedikçe gist gizlidir (gizli gist listelenmez ama özel değildir: bağlantıyı bilen okuyabilir).
 - **Yapay zekâ `json: true`:** `system` içinde tam JSON biçimini tarif edin; çözülmüş nesne `data` alanındadır.
 - **HTTP ile izleme:** `"failOnError": false` ile 4xx/5xx *ve* bağlantı hataları akışı durdurmaz; `{{ !input.ok }}` ile kontrol edin.
+- **Webhook yanıtı:** `respond` düğümü yoksa webhook son düğümün çıktısını 200 durumuyla döndürür. `status`, `headers` ve `body` değerlerini kendiniz seçmek için bir `respond` düğümü ekleyin, ör. `{"status": 201, "headers": {"Location": "/orders/{{ input.id }}"}, "body": "{{ input }}"}`. JSON `body` JSON olarak, metin ise düz metin olarak gönderilir. Başarılı son `respond` düğümü geçerlidir.
 - Hata mesajlarına URL yazılmaz; webhook adresleri ve token'lar geçmişe sızmaz.
